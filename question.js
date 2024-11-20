@@ -14,6 +14,4 @@ question.prototype.averageRatings = function(){
 };
 */
 
-var test = "ceci est un test";
-
 module.exports = question;
