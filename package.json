@@ -1,0 +1,11 @@
+{
+  "name": "leventsouffle",
+  "version": "1.0.0",
+  "description": "Projet B du groupe LeVentSouffle GL02",
+  "main": "CaporalCli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sophoe, Solène, Dacha et Eliot",
+  "license": "ISC"
+}
