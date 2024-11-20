@@ -14,4 +14,8 @@ question.prototype.averageRatings = function(){
 };
 */
 
+question.prototype.equal=function(){
+    //<3
+}
+
 module.exports = question;
