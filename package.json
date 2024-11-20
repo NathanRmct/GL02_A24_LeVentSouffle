@@ -7,5 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sophie, Solène, Dacha et Eliot",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@caporal/core": "^2.0.7",
+    "colors": "^1.4.0",
+    "fs": "^0.0.1-security",
+    "vega": "^5.30.0",
+    "vega-lite": "^5.21.0"
+  }
 }
