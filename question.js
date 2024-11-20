@@ -13,9 +13,10 @@ question.prototype.averageRatings = function(){
 
 };
 */
-
 question.prototype.equal=function(){
     //<3
 }
+
+var test = "ceci est un test";
 
 module.exports = question;
