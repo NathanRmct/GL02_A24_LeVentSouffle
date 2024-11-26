@@ -12,7 +12,7 @@ var GiftParser = function(sTokenize, sParsedSymb){
 }
 
 // tokenize : tranform the data input into a list
-// <eol> = CRLF
+// <eol> = CRLF et commentaires : les lignes qui commencent par '//'
 GiftParser.prototype.tokenize = function(data){
 	var separator = /(\r\n)/; 
 	data = data.split(separator);
@@ -90,9 +90,11 @@ GiftParser.prototype.questionnaire = function(input){
 GiftParser.prototype.question = function(input){
 
 	if(this.check(/::\.::/, input)){
-		
+		// a continuer à remplir
 		
 		/*
+		# Exemlpe avec les POI :
+		
 		this.expect("START_POI", input);
 		var args = this.body(input);
 		var p = new POI(args.nm, args.lt, args.lg, []);
