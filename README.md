@@ -6,7 +6,6 @@ questionnaire.js -> Fichier où on décrit notre objet (`POI`)
 CaporalCli.js -> Fait le relais avec l'interface en invite de commande
 
 spec -> dossier pour les tests unitairess
-lolilol
 
 ## TODO
 [] Parser
