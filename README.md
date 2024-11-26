@@ -15,3 +15,7 @@ spec -> dossier pour les tests unitairess
 ## Dépendances 
 - Node
 - Grep
+
+### Infos pour les développeurs :
+- les <b> rien dans le cahier des charges
+- Les commentaires qu'est ce qu'on en fait ?

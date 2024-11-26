@@ -1,4 +1,6 @@
 var question = require('./question');
+var questionnaire = require('./questionnaire');
+var profil = require('./profil');
 
 var GiftParser = function(sTokenize, sParsedSymb){
 // The list of question parsed from the input file.
@@ -12,9 +14,10 @@ var GiftParser = function(sTokenize, sParsedSymb){
 // tokenize : tranform the data input into a list
 // <eol> = CRLF
 GiftParser.prototype.tokenize = function(data){
-	var separator = /(\r\n|: )/; // quels sont les séparateurs ?
+	var separator = /(\r\n)/; 
 	data = data.split(separator);
-	data = data.filter((val, idx) => !val.match(separator)); 					
+	data = data.filter((val, idx) => !val.match(separator)); 
+	data = data.filter((val, idx) => !val.startsWith('//')); // Remove de tout les commentaires du fichier
 	return data;
 }
 
@@ -57,7 +60,7 @@ GiftParser.prototype.accept = function(s){
 }
 
 // check : check whether the arg elt is on the head of the list
-VpfParser.prototype.check = function(s, input){
+GiftParser.prototype.check = function(s, input){
 	if(this.accept(input[0]) == this.accept(s)){
 		return true;	
 	}
@@ -75,28 +78,35 @@ GiftParser.prototype.expect = function(s, input){
 	return false;
 }
 
-module.exports = GiftParser;
+// Parser rules
 
-/* A voir plus tard
-
-// Read and return a symbol from input
-VpfParser.prototype.next = function(input){
-	var curS = input.shift();
-	if(this.showParsedSymbols){
-		console.log(curS);
-	}
-	return curS
+// gift-file  =  1*((commentary / question) CRLF)
+GiftParser.prototype.questionnaire = function(input){
+	this.question(input);
+	this.expect("$$", input);
 }
 
+// question = ...
+GiftParser.prototype.question = function(input){
 
-// accept : verify if the arg s is part of the language symbols.
-VpfParser.prototype.accept = function(s){
-	var idx = this.symb.indexOf(s);
-	// index 0 exists
-	if(idx === -1){
-		this.errMsg("symbol "+s+" unknown", [" "]);
+	if(this.check(/::\.::/, input)){
+		
+		
+		/*
+		this.expect("START_POI", input);
+		var args = this.body(input);
+		var p = new POI(args.nm, args.lt, args.lg, []);
+		this.note(input, p);
+		this.expect("END_POI",input);
+		this.parsedPOI.push(p);
+		if(input.length > 0){
+			this.poi(input);
+		} */
+		return true;
+	}else{
 		return false;
 	}
 
-	return idx;
-}*/
+}
+
+module.exports = GiftParser;
