@@ -83,6 +83,18 @@ cli
 		logger.info(`Le type de la question est : ${questionType}`.green);
 	})
 
+	// setTitle : modifier ou ajouter le titre d'une question
+	/*
+	.command('setTitle', 'Modifier ou ajouter le titre d\'une question')
+	.argument('<type>', 'Type de la question')
+	.action(({ args, logger }) => {
+		const question = new Question(args.type);
+		question.setTitle(question, args.newTitle);
+		logger.info(`Le titre de la question a été mis à jour avec succès.`.green);
+		logger.info(`Nouveau titre : ${question.title}`.yellow);
+	})
+	*/
+	
 	// readme
 	.command('readme', 'Display the README.txt file')
 	.action(({ args, options, logger }) => {

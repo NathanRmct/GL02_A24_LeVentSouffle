@@ -12,6 +12,10 @@ var question = function(title, sentence, type, answers = '', correctAnswers ='')
 var question = function(type = '') {
     this.type = type;
 };
+
+question.prototype.setTitle = function(question, titre){
+	question.titre = titre;
+}
 	
 /*
 question.prototype.averageRatings = function(){
