@@ -21,6 +21,6 @@ spec -> dossier pour les tests unitairess
 - Les commentaires qu'est ce qu'on en fait ?
 
 ## CaporalCli.js 
-### Question
-- **equal** : commande : `node CaporalCli.js compareQuestions <titre1> <sentence1> <titre2> <sentence2>`.  
-  Exemple d'utilisation : `node CaporalCli.js compareQuestions "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"`.
+##### méthode `equal`
+commande : `node CaporalCli.js compareQuestions <titre1> <sentence1> <titre2> <sentence2>`.  
+Exemple d'utilisation : `node CaporalCli.js compareQuestions "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"`.
