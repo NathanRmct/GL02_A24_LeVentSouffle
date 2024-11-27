@@ -29,7 +29,7 @@ cli
 			}
 
 			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-			logger.info(analyzer.tokenize(data));
+			analyzer.parse(data);
 
 			if (analyzer.errorCount === 0) {
 				logger.info("The .gift file is a valid gift file".green);
@@ -37,10 +37,23 @@ cli
 				logger.info("The .gift file contains error".red);
 			}
 
-			// logger.debug(analyzer.parsedPOI);
+			logger.debug(analyzer.parsedPOI);
 
 		});
 
 	})
+
+		// readme
+		.command('readme', 'Display the README.txt file')
+		.action(({ args, options, logger }) => {
+			fs.readFile("./README.txt", 'utf8', function (err, data) {
+				if (err) {
+					return logger.warn(err);
+				}
+	
+				logger.info(data);
+			});
+	
+		})
 
 cli.run(process.argv.slice(2));

@@ -1,11 +1,10 @@
-var question = function(type, title, sentence, answers, correctAnswers){
-	this.type = type; 
+var question = function(title, instruction, sentence, type = '', answers = '', correctAnswers =''){
+	// this.type = type;
 	this.title = title;	
-	this.sentence = sentence; // String
-	this.answers = answers; // Liste de String
-	this.correctAnswers = correctAnswers // String
-
-	// ATTENTION : Que faire si c'est une question à rédiger, sans correctAnswers attendues ?
+	//this.instruction = instruction
+	//this.sentence = sentence; // String
+	// this.answers = answers; // Liste de String
+	// this.correctAnswers = correctAnswers // String
 }
 	
 /*
