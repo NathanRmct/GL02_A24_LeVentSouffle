@@ -1,10 +1,17 @@
-var question = function(title, sentence, type = '', answers = '', correctAnswers =''){
+/*
+var question = function(title, sentence, type, answers = '', correctAnswers =''){
 	this.title = title;
     this.sentence = sentence; // Liste de String
     this.type = type; // Type de la question
     this.answers = answers; // Liste de réponses
 	// this.correctAnswers = correctAnswers // String
 }
+	
+*/
+
+var question = function(type = '') {
+    this.type = type;
+};
 	
 /*
 question.prototype.averageRatings = function(){

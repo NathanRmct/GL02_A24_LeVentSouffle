@@ -43,6 +43,14 @@ cli
 		});
 	})
 
+	// creer : créer une question
+	.command('creer', 'Créer une question')
+	.argument('<type>', 'Type de la question')
+	.action(({ args, logger }) => {
+		const question = new Question(args.type);
+		logger.info(`La question de type ${question.type} a été créée avec succès.`.green);
+	})
+
 	// equal : compare deux questions et retourne si elles sont identiques ou non
 	.command('equal', 'Compare deux questions')
     .argument('<titre1>', 'Titre de la première question')
