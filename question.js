@@ -13,6 +13,8 @@ question.prototype.averageRatings = function(){
 
 };
 */
+
+// compare deux question pour voir si elles sont identiques
 question.prototype.equal = function(question1, question2) {
     return (
         question1.title === question2.title &&
@@ -22,6 +24,11 @@ question.prototype.equal = function(question1, question2) {
         question1.correctAnswers === question2.correctAnswers
     );
 };
+
+// Retourne le type de la question
+question.prototype.getType = function() {
+	return this.type;
+}
 
 
 

@@ -60,6 +60,21 @@ cli
         }
     })
 
+	// getType : retourne le type d'une question
+	.command('getType', 'Retourne le type d\'une question')
+	.argument('<titre>', 'Titre de la question')
+	.argument('<sentence>', 'Contenu de la question', { validator: cli.STRING })
+	.argument('[type]', 'Type de la question')
+	.action(({ args, logger }) => {
+		if (!args.type) {
+			logger.error("Le type de la question est manquant.".red);
+			return;
+		}	
+		const question = new Question(args.title, args.sentence, args.type);
+		const questionType = question.getType();
+		logger.info(`Le type de la question est : ${questionType}`.green);
+	})
+
 	// readme
 	.command('readme', 'Display the README.txt file')
 	.action(({ args, options, logger }) => {

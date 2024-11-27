@@ -30,3 +30,11 @@ spec -> dossier pour les tests unitairess
     ```bash
     node CaporalCli.js compareQuestions "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"
     ```
+- **getType** : commande : 
+    ```bash
+    node CaporalCli.js getType <titre> <sentence> <type>
+    ```  
+    Exemple d'utilisation : 
+    ```bash
+    node CaporalCli.js getType "titrequestion" "sentence" "choix multiple"
+    ```
