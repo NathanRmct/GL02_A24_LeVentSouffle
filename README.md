@@ -22,4 +22,5 @@ spec -> dossier pour les tests unitairess
 
 ## CaporalCli.js 
 ### Question
-- **equal** : commande : `node CaporalCli.js equal <titre1> <sentence1> <titre2> <sentence2>`. Exemple d'utilisation : `node CaporalCli.js equal "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"`
+- **equal** : commande : `node CaporalCli.js compareQuestions <titre1> <sentence1> <titre2> <sentence2>`.  
+  Exemple d'utilisation : `node CaporalCli.js compareQuestions "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"`.
