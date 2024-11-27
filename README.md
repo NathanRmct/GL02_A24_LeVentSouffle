@@ -17,10 +17,10 @@ spec -> dossier pour les tests unitairess
 - Grep
 
 ### Infos pour les développeurs :
-- les <b> rien dans le cahier des charges
+- les **rien dans le cahier des charges**
 - Les commentaires qu'est ce qu'on en fait ?
 
 ## CaporalCli.js 
-##### méthode `equal`
-commande : `node CaporalCli.js compareQuestions <titre1> <sentence1> <titre2> <sentence2>`.  
-Exemple d'utilisation : `node CaporalCli.js compareQuestions "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"`.
+### Question
+- **equal** : commande : `node CaporalCli.js compareQuestions <titre1> <sentence1> <titre2> <sentence2>`.  
+  Exemple d'utilisation : `node CaporalCli.js compareQuestions "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"`.
