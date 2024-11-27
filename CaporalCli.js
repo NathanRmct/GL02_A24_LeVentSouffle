@@ -16,7 +16,7 @@ cli
     
     })
 
-	// checkGift : vérifie si le document est compatible et affiche les données juste tokenize
+	// checkGift : vérifie si le document est compatible et affiche les données parsed (voir tokenisef si besoin)
 	.command('checkGift', 'Check if <file> is a valid gift file')
 	.argument('<file>', 'The file to check with Vpf parser')
 	.option('-s, --showSymbols', 'log the analyzed symbol at each step', { validator: cli.BOOLEAN, default: false })
@@ -36,8 +36,7 @@ cli
 			} else {
 				logger.info("The .gift file contains error".red);
 			}
-
-			logger.debug(analyzer.parsedPOI);
+			logger.info("%s", JSON.stringify(analyzer.parsedQuestion, null, 2));
 
 		});
 

@@ -1,8 +1,7 @@
-var question = function(title, instruction, sentence, type = '', answers = '', correctAnswers =''){
+var question = function(title, sentence, type = '', answers = '', correctAnswers =''){
 	// this.type = type;
 	this.title = title;	
-	//this.instruction = instruction
-	//this.sentence = sentence; // String
+	this.sentence = sentence; // liste de String
 	// this.answers = answers; // Liste de String
 	// this.correctAnswers = correctAnswers // String
 }

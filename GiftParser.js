@@ -1,11 +1,11 @@
 var question = require('./question');
 var questionnaire = require('./questionnaire');
 var profil = require('./profil');
+const { array } = require('vega');
 
 var GiftParser = function(sTokenize, sParsedSymb){
-// The list of question parsed from the input file.
-	this.parsedQuestion = [];
-	// this.symb = ["::",""]; 
+// La liste récupéré des objets questions, récupérer par le parser
+	this.parsedQuestion = []; 
 	this.showTokenize = sTokenize;
 	this.showParsedSymbols = sParsedSymb;
 	this.errorCount = 0;
@@ -31,7 +31,6 @@ GiftParser.prototype.parse = function(data){
 	if(this.showTokenize){
 		console.log(tData);
 	}
-	// A faire : Transformer les données en un questionnaire : ensemble de questions qui seront affichés correctement
 	this.questionnaire(tData);
 }
 
@@ -50,7 +49,8 @@ GiftParser.prototype.next = function(input){
 	}
 	return curS
 }
-/* Pas utile pour l'instant.. 
+
+/* Pas utile (pottentiellement à supprimer)
 // accept : verify if the arg s is part of the language symbols.
 GiftParser.prototype.accept = function(s){
 	var idx = this.symb.indexOf(s);
@@ -94,28 +94,17 @@ GiftParser.prototype.questionnaire = function(input){
 
 // question = ...
 GiftParser.prototype.question = function(input){
-	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.+)/)){ // vérfie que l'input commence bien par :: titre :: ...
-		var args = this.body(input) // renvoie les différents arguments des différentes valeurs
-		var p = new question(args.tit) // , args.ins, args.sent
+	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){ // vérfie que l'input commence bien par :: titre :: texte (ou rien)
+		var args = this.body(input) // renvoie les différentes valeurs récupérer du parsing
+		var p = new question(args.tit, args.sent)
+		// il manque les ans (answers) à déduire des sentences et à trier entre bonnes réponses et réponses ainsi que le type de question (à déduire)
 		this.parsedQuestion.push(p);
 		if(input.length > 0){
 			this.question(input);
-		} 
-		/*
-		# Exemple avec les POI :
-		
-		this.expect("START_POI", input);
-		var args = this.body(input);
-		var p = new POI(args.nm, args.lt, args.lg, []);
-		this.note(input, p);
-		this.expect("END_POI",input);
-		this.parsedPOI.push(p);
-		if(input.length > 0){
-			this.poi(input);
-		} */
+		}
 		return true;
 	}else{
-		this.errMsg("Erreur au parseur pour la compréhension des données (titre)", input);
+		this.errMsg("Erreur au parseur pour créer la question", input);
 		return false;
 
 	}
@@ -126,17 +115,15 @@ GiftParser.prototype.question = function(input){
 GiftParser.prototype.body = function(input){
 	// var typ = this.type(input); //à faire plus tard : trouver le type 
 	var tit = this.title(input);
-	// var ins = this.instruction(input);
-	this.next(input);
-	// var sent = this.sentence(input);
-	// var cor = this.correctAnswer(input); // à faire plus tard : récupérer les réponses correctes
-	return { tit: tit}; // ins: ins, sent: sent
+	var sent = this.sentence(input);
+	// var cor = this.correctAnswer(sent); // à faire plus tard : récupérer les réponses correctes
+	// Idée le faire à partir des sentence ? (les enlever pour ensuite les mettre)
+	return { tit: tit, sent: sent}; 
 }
 
 // titre = “::”  TEXT  “::”
 GiftParser.prototype.title = function(input){
-	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.+)/)){
-	console.log(matched[1]);
+	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){
 	return matched[1];
 	}
 	else{
@@ -144,29 +131,30 @@ GiftParser.prototype.title = function(input){
 	}
 }
 
-/*
-// ins = tout ce qui est après “::”  TEXT  “::” mais sur la même ligne
-GiftParser.prototype.instruction = function(input){
-	this.expect("/::\.::/", input)
-	
-	var curS = this.next(input);
-	if(matched = curS.match(/[\wàéèêîù'\s]+/i)){
-		return matched[0];
-	}else{
-		this.errMsg("Invalid name", input);
+
+// sent = tout ce qui est après “::”  TEXT  “::”, sur la même ligne et ce jusqu'à la prochaine question / fin du fichier
+GiftParser.prototype.sentence = function(input){
+	let texte = [];
+	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){
+		if(matched[2]){
+			texte.push(matched[2]);
+			}
+		}
+		else{
+			this.errMsg("Invalid title (for sentence)", input);
+		}
+	this.next(input);
+	if (input.length > 0) {
+	while(input.length > 0){
+		if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){
+		break;
+		}
+		texte.push(input[0]);
+		this.next(input);
 	}
+	}
+	console.log(texte);
+	return(texte);
 }
 
-// sent = tout ce qui est après la ligne du titre jusqu'à la prochaine question / fin du fichier
-GiftParser.prototype.sentence = function(input){
-	this.expect("/::\.::/",input)
-	var separator = /"::"/; 
-	data = data[0].split(separator)
-	if(matched = data.match(/[\wàéèêîù'\s]+/i)){
-		return matched[0];
-	}else{
-		this.errMsg("Invalid name", input);
-	}
-}
-*/
 module.exports = GiftParser;
