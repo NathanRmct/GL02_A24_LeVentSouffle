@@ -19,3 +19,7 @@ spec -> dossier pour les tests unitairess
 ### Infos pour les développeurs :
 - les <b> rien dans le cahier des charges
 - Les commentaires qu'est ce qu'on en fait ?
+
+## CaporalCli.js 
+### Question
+- **equal** : commande : `node CaporalCli.js equal <titre1> <sentence1> <titre2> <sentence2>`. Exemple d'utilisation : `node CaporalCli.js equal "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"`

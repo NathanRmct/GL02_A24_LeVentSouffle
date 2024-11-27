@@ -4,17 +4,19 @@ const GiftParser = require('./GiftParser.js');
 const vg = require('vega');
 const vegalite = require('vega-lite');
 const cli = require("@caporal/core").default;
+const Question = require('./question');
+
 
 cli
-    .version('vpf-parser-cli')
-    .version('0.01')
+	.version('vpf-parser-cli')
+	.version('0.01')
 
-    // test : vérifie si l'interface répond à une demande de base
-    .command('test', 'test si la relation de base fonctionne')
-    .action(({logger}) => {
-    logger.info ("ça fonctionne")
-    
-    })
+	// test : vérifie si l'interface répond à une demande de base
+	.command('test', 'test si la relation de base fonctionne')
+	.action(({ logger }) => {
+		logger.info("ça fonctionne")
+
+	})
 
 	// checkGift : vérifie si le document est compatible et affiche les données parsed (voir tokenisef si besoin)
 	.command('checkGift', 'Check if <file> is a valid gift file')
@@ -39,20 +41,36 @@ cli
 			logger.info("%s", JSON.stringify(analyzer.parsedQuestion, null, 2));
 
 		});
-
 	})
 
-		// readme
-		.command('readme', 'Display the README.txt file')
-		.action(({ args, options, logger }) => {
-			fs.readFile("./README.txt", 'utf8', function (err, data) {
-				if (err) {
-					return logger.warn(err);
-				}
-	
-				logger.info(data);
-			});
-	
-		})
+	// equal : compare deux questions et retourne si elles sont identiques ou non
+	.command('equal', 'Compare deux questions')
+    .argument('<titre1>', 'Titre de la première question')
+    .argument('<sentence1>', 'Sentence(s) de la première question', { validator: cli.STRING })
+    .argument('<titre2>', 'Titre de la deuxieme question')
+    .argument('<sentence2>', 'Sentence(s) de la deuxieme question', { validator: cli.STRING })
+    .action(({ args, logger }) => {
+        const q1 = new Question(args.titre1, args.sentence1);
+        const q2 = new Question(args.titre1, args.sentence2);
+
+        if (q1.equal(q1, q2)) {
+            logger.info("Les deux questions sont identiques.".green);
+        } else {
+            logger.warn("Les deux questions sont différentes.".red);
+        }
+    })
+
+	// readme
+	.command('readme', 'Display the README.txt file')
+	.action(({ args, options, logger }) => {
+		fs.readFile("./README.txt", 'utf8', function (err, data) {
+			if (err) {
+				return logger.warn(err);
+			}
+
+			logger.info(data);
+		});
+
+	})
 
 cli.run(process.argv.slice(2));
