@@ -38,3 +38,11 @@ spec -> dossier pour les tests unitairess
     ```bash
     node CaporalCli.js getType "titrequestion" "sentence" "choix multiple"
     ```
+- **creer** : commande : 
+    ```bash
+    node CaporalCli.js creer <type>
+    ```  
+    Exemple d'utilisation : 
+    ```bash
+    node CaporalCli.js creer "qcm"
+    ```
