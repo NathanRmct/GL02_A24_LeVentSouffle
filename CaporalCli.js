@@ -43,58 +43,6 @@ cli
 		});
 	})
 
-	// creer : créer une question
-	.command('creer', 'Créer une question')
-	.argument('<type>', 'Type de la question')
-	.action(({ args, logger }) => {
-		const question = new Question(null, null, args.type, null, null);
-		logger.info(`La question de type ${question.type} a été créée avec succès.`.green);
-	})
-
-	// equal : compare deux questions et retourne si elles sont identiques ou non
-	.command('equal', 'Compare deux questions')
-    .argument('<titre1>', 'Titre de la première question')
-    .argument('<sentence1>', 'Sentence(s) de la première question', { validator: cli.STRING })
-    .argument('<titre2>', 'Titre de la deuxieme question')
-    .argument('<sentence2>', 'Sentence(s) de la deuxieme question', { validator: cli.STRING })
-    .action(({ args, logger }) => {
-        const q1 = new Question(args.titre1, args.sentence1);
-        const q2 = new Question(args.titre1, args.sentence2);
-
-        if (q1.equal(q1, q2)) {
-            logger.info("Les deux questions sont identiques.".green);
-        } else {
-            logger.warn("Les deux questions sont différentes.".red);
-        }
-    })
-
-	// getType : retourne le type d'une question
-	.command('getType', 'Retourne le type d\'une question')
-	.argument('<titre>', 'Titre de la question')
-	.argument('<sentence>', 'Contenu de la question', { validator: cli.STRING })
-	.argument('[type]', 'Type de la question')
-	.action(({ args, logger }) => {
-		if (!args.type) {
-			logger.error("Le type de la question est manquant.".red);
-			return;
-		}	
-		const question = new Question(args.title, args.sentence, args.type);
-		const questionType = question.getType();
-		logger.info(`Le type de la question est : ${questionType}`.green);
-	})
-
-	// setTitle : modifier ou ajouter le titre d'une question
-	/*
-	.command('setTitle', 'Modifier ou ajouter le titre d\'une question')
-	.argument('<type>', 'Type de la question')
-	.action(({ args, logger }) => {
-		const question = new Question(args.type);
-		question.setTitle(question, args.newTitle);
-		logger.info(`Le titre de la question a été mis à jour avec succès.`.green);
-		logger.info(`Nouveau titre : ${question.title}`.yellow);
-	})
-	*/
-	
 	// readme
 	.command('readme', 'Display the README.txt file')
 	.action(({ args, options, logger }) => {

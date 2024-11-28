@@ -1,6 +1,6 @@
 var question = require('./lib/question');
-var questionnaire = require('./questionnaire');
-var profil = require('./profil');
+var questionnaire = require('./lib/questionnaire');
+var profil = require('./lib/profil');
 const { array } = require('vega');
 
 var GiftParser = function(sTokenize, sParsedSymb){
@@ -16,7 +16,10 @@ var GiftParser = function(sTokenize, sParsedSymb){
 // et on enlève les commentaires : les lignes qui commencent par '//', ou par "$"
 // Enfin, on enlève les données du tableau qui sont vides
 GiftParser.prototype.tokenize = function(data){
-	var separator = /(\r\n)/; 
+	// Pour MacOS
+	var separator = /(\n\n)/; 
+	// Pour Windows
+	// var separator = /(\r\n)/; 
 	data = data.split(separator);
 	data = data.filter((val, idx) => !val.match(separator)); 
 	data = data.filter((val, idx) => !val.startsWith('//'));
@@ -94,6 +97,11 @@ GiftParser.prototype.questionnaire = function(input){
 
 // question = ...
 GiftParser.prototype.question = function(input){
+	if (!input || input.length === 0 || !input[0]) {
+        console.error("Erreur : Input vide ou ligne invalide détectée.");
+        return false;
+    }
+
 	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){ // vérfie que l'input commence bien par :: titre :: texte (ou rien)
 		var args = this.body(input) // renvoie les différentes valeurs récupérer du parsing
 		var p = new question(args.tit, args.sent)
@@ -106,9 +114,7 @@ GiftParser.prototype.question = function(input){
 	}else{
 		this.errMsg("Erreur au parseur pour créer la question", input);
 		return false;
-
 	}
-
 }
 
 // Récupère les différentes variables :
