@@ -1,4 +1,4 @@
-var question = require('./question');
+var question = require('./lib/question');
 var questionnaire = require('./questionnaire');
 var profil = require('./profil');
 const { array } = require('vega');

@@ -4,7 +4,7 @@ const GiftParser = require('./GiftParser.js');
 const vg = require('vega');
 const vegalite = require('vega-lite');
 const cli = require("@caporal/core").default;
-const Question = require('./question');
+const Question = require('./lib/question.js');
 
 
 cli
