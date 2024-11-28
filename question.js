@@ -1,4 +1,3 @@
-/*
 var question = function(title, sentence, type, answers = '', correctAnswers =''){
 	this.title = title;
     this.sentence = sentence; // Liste de String
@@ -6,12 +5,6 @@ var question = function(title, sentence, type, answers = '', correctAnswers ='')
     this.answers = answers; // Liste de réponses
 	// this.correctAnswers = correctAnswers // String
 }
-	
-*/
-
-var question = function(type = '') {
-    this.type = type;
-};
 
 question.prototype.setTitle = function(question, titre){
 	question.titre = titre;

@@ -47,7 +47,7 @@ cli
 	.command('creer', 'Créer une question')
 	.argument('<type>', 'Type de la question')
 	.action(({ args, logger }) => {
-		const question = new Question(args.type);
+		const question = new Question(null, null, args.type, null, null);
 		logger.info(`La question de type ${question.type} a été créée avec succès.`.green);
 	})
 
