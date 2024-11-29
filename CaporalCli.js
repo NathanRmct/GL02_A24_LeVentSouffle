@@ -62,6 +62,24 @@ cli
 		});
 	})
 
+	// ajouterQuestion : permet de vusialiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
+	.command('ajouterQuestion', 'Ajoute une question à un examen à préparer')
+	.argument('<file>', 'The file to check with Gift parser')
+	.argument('<string>', 'The text to look for in the different questions')
+	.action(({ args, options, logger }) => {
+
+		fs.readFile(args.file, 'utf8', function (err, data) {
+			if (err) {
+				return logger.warn(err);
+			}
+
+			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+			analyzer.parse(data);
+			var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
+			logger.info("%s", JSON.stringify(filtered, null, 2));
+
+		});
+	})
 
 
 	// readme
