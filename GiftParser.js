@@ -17,9 +17,9 @@ var GiftParser = function(sTokenize, sParsedSymb){
 // Enfin, on enlève les données du tableau qui sont vides
 GiftParser.prototype.tokenize = function(data){
 	// Pour MacOS
-	var separator = /(\n\n)/; 
+	// var separator = /(\n\n)/; 
 	// Pour Windows
-	// var separator = /(\r\n)/; 
+	 var separator = /(\r\n)/; 
 	data = data.split(separator);
 	data = data.filter((val, idx) => !val.match(separator)); 
 	data = data.filter((val, idx) => !val.startsWith('//'));
@@ -95,7 +95,7 @@ GiftParser.prototype.questionnaire = function(input){
 	new questionnaire(this.parsedQuestion);
 }
 
-// question = ...
+// question = créer une liste de question et les met dans le parsedQuestion en fonction de l'input (qui respecte l'ABNF)
 GiftParser.prototype.question = function(input){
 	if (!input || input.length === 0 || !input[0]) {
         console.error("Erreur : Input vide ou ligne invalide détectée.");
@@ -159,8 +159,9 @@ GiftParser.prototype.sentence = function(input){
 		this.next(input);
 	}
 	}
-	console.log(texte);
 	return(texte);
 }
+
+
 
 module.exports = GiftParser;

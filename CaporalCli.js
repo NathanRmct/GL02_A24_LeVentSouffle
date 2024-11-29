@@ -20,7 +20,7 @@ cli
 
 	// checkGift : vérifie si le document est compatible et affiche les données parsed (voir tokenisef si besoin)
 	.command('checkGift', 'Check if <file> is a valid gift file')
-	.argument('<file>', 'The file to check with Vpf parser')
+	.argument('<file>', 'The file to check with Gift parser')
 	.option('-s, --showSymbols', 'log the analyzed symbol at each step', { validator: cli.BOOLEAN, default: false })
 	.option('-t, --showTokenize', 'log the tokenization results', { validator: cli.BOOLEAN, default: false })
 	.action(({ args, options, logger }) => {
@@ -42,6 +42,27 @@ cli
 
 		});
 	})
+
+	// search : vérifie si le document est compatible et affiche les données parsed (voir tokenisef si besoin)
+	.command('search', 'Check question that contains a particular string')
+	.argument('<file>', 'The file to check with Gift parser')
+	.argument('<string>', 'The text to look for in the different questions')
+	.action(({ args, options, logger }) => {
+
+		fs.readFile(args.file, 'utf8', function (err, data) {
+			if (err) {
+				return logger.warn(err);
+			}
+
+			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+			analyzer.parse(data);
+			var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
+			logger.info("%s", JSON.stringify(filtered, null, 2));
+
+		});
+	})
+
+
 
 	// readme
 	.command('readme', 'Display the README.txt file')
