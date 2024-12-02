@@ -59,7 +59,6 @@ cli
 			analyzer.parse(data);
 			var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
 			logger.info("%s", JSON.stringify(filtered, null, 2));
-
 		});
 		}
 		
@@ -76,7 +75,8 @@ cli
 					var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
 					analyzer.parse(data);
 					var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
-					logger.info("%s", JSON.stringify(filtered, null, 2));
+					if(filtered.length > 0){
+					logger.info("%s", JSON.stringify(filtered, null, 2));}
 				});
 				}
 			}
