@@ -2,9 +2,11 @@ const fs = require('fs');
 const colors = require('colors');
 const GiftParser = require('./GiftParser.js');
 const vg = require('vega');
+const path = require('path');
 const vegalite = require('vega-lite');
 const cli = require("@caporal/core").default;
 const Question = require('./lib/question.js');
+//const { forEach } = require('vega-lite/build/src/encoding.js');
 
 
 cli
@@ -45,21 +47,44 @@ cli
 
 	// search : vérifie si le document est compatible et affiche les données parsed (voir tokenisef si besoin)
 	.command('search', 'Check question that contains a particular string')
-	.argument('<file>', 'The file to check with Gift parser')
+	.argument('<file>', 'The file or the directory to check with Gift parser')
 	.argument('<string>', 'The text to look for in the different questions')
 	.action(({ args, options, logger }) => {
-
+		if(fs.lstatSync(args.file).isFile()){
 		fs.readFile(args.file, 'utf8', function (err, data) {
 			if (err) {
 				return logger.warn(err);
 			}
-
 			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
 			analyzer.parse(data);
 			var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
 			logger.info("%s", JSON.stringify(filtered, null, 2));
 
 		});
+		}
+		
+		else if(fs.lstatSync(args.file).isDirectory()){
+			fs.readdirSync(args.file).forEach((file) => {
+				const fullPath = path.join(args.file, file);
+				  // Si c'est un fichier, lire et afficher le contenu
+				  if(fs.lstatSync(fullPath).isFile()) {
+				  fs.readFile(fullPath, 'utf8', function (err, data) {
+					if (err) {
+						return logger.warn(err);
+					}
+		
+					var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+					analyzer.parse(data);
+					var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
+					logger.info("%s", JSON.stringify(filtered, null, 2));
+				});
+				}
+			}
+			);
+		}
+		else {
+			return logger.warn("Le fichier n'est ni un fichier, ni un document.");
+			}
 	})
 
 	// ajouterQuestion : permet de vusialiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
