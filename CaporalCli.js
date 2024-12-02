@@ -81,6 +81,13 @@ cli
 		});
 	})
 
+	// qualiteExamen : vérifier la qualité d'un examen
+	.command('qualiteExamen', 'Vérifie la qualité d\'un examen')
+	.argument('<file>', 'The file to check with Gift parser')
+	.action(({ args, options, logger }) => {
+		
+	})
+
 
 	// readme
 	.command('readme', 'Display the README.txt file')
