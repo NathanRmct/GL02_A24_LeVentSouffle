@@ -17,9 +17,9 @@ var GiftParser = function(sTokenize, sParsedSymb){
 // Enfin, on enlève les données du tableau qui sont vides
 GiftParser.prototype.tokenize = function(data){
 	// Pour MacOS
-	// var separator = /(\n\n)/; 
+	var separator = /(\n\n)/; 
 	// Pour Windows
-	 var separator = /(\r\n)/; 
+	// var separator = /(\r\n)/; 
 	data = data.split(separator);
 	data = data.filter((val, idx) => !val.match(separator)); 
 	data = data.filter((val, idx) => !val.startsWith('//'));

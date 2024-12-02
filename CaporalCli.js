@@ -66,8 +66,8 @@ cli
 			fs.readdirSync(args.file).forEach((file) => {
 				const fullPath = path.join(args.file, file);
 				  // Si c'est un fichier, lire et afficher le contenu
-				  if(fs.lstatSync(fullPath).isFile()) {
-				  fs.readFile(fullPath, 'utf8', function (err, data) {
+				if(fs.lstatSync(fullPath).isFile()) {
+					fs.readFile(fullPath, 'utf8', function (err, data) {
 					if (err) {
 						return logger.warn(err);
 					}
@@ -110,7 +110,17 @@ cli
 	.command('qualiteExamen', 'Vérifie la qualité d\'un examen')
 	.argument('<file>', 'The file to check with Gift parser')
 	.action(({ args, options, logger }) => {
-		
+		s.readFile(args.file, 'utf8', function (err, data) {
+			if (err) {
+				return logger.warn(err);
+			}
+
+			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+			analyzer.parse(data);
+			var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
+			logger.info("%s", JSON.stringify(filtered, null, 2));
+
+		});
 	})
 
 
