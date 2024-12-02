@@ -4,7 +4,7 @@
   "description": "Projet B du groupe LeVentSouffle GL02",
   "main": "CaporalCli.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine"
   },
   "author": "Sophie, Solène, Dacha et Eliot",
   "license": "ISC",
@@ -16,5 +16,8 @@
     "path": "^0.12.7",
     "vega": "^5.30.0",
     "vega-lite": "^5.21.0"
+  },
+  "devDependencies": {
+    "jasmine": "^5.4.0"
   }
 }
