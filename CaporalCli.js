@@ -8,6 +8,10 @@ const cli = require("@caporal/core").default;
 const Question = require('./lib/question.js');
 //const { forEach } = require('vega-lite/build/src/encoding.js');
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 
 cli
 	.version('vpf-parser-cli')
@@ -49,49 +53,50 @@ cli
 	.command('search', 'Check question that contains a particular string')
 	.argument('<file>', 'The file or the directory to check with Gift parser')
 	.argument('<string>', 'The text to look for in the different questions')
-	.action(({ args, options, logger }) => {
+	.action(async ({ args, options, logger }) => {
 		let compteur = 0;
-		if(fs.lstatSync(args.file).isFile()){
-		fs.readFile(args.file, 'utf8', function (err, data) {
-			if (err) {
-				return logger.warn(err);
-			}
-			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-			analyzer.parse(data);
-			var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
-			logger.info("%s", JSON.stringify(filtered, null, 2));
-		});
-		}
-		
-		else if(fs.lstatSync(args.file).isDirectory()){
+
+		if (fs.lstatSync(args.file).isFile()) {
+			fs.readFile(args.file, 'utf8', function (err, data) {
+				if (err) {
+					return logger.warn(err);
+				}
+				var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+				analyzer.parse(data);
+				var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
+				if (filtered.length > 0) {
+					compteur += 1;
+					logger.info("%s", JSON.stringify(filtered, null, 2));
+				}
+			});
+		} else if (fs.lstatSync(args.file).isDirectory()) {
 			fs.readdirSync(args.file).forEach((file) => {
 				const fullPath = path.join(args.file, file);
-				  // Si c'est un fichier, lire et afficher le contenu
-				if(fs.lstatSync(fullPath).isFile()) {
+				if (fs.lstatSync(fullPath).isFile()) {
 					fs.readFile(fullPath, 'utf8', function (err, data) {
-					if (err) {
-						return logger.warn(err);
-					}
-		
-					var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-					analyzer.parse(data);
-					var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
-					if(filtered.length > 0){
-						compteur += 1;
-						logger.info("%s", JSON.stringify(filtered, null, 2));
-					} 
-				});
+						if (err) {
+							return logger.warn(err);
+						}
+						var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+						analyzer.parse(data);
+						var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
+						if (filtered.length > 0) {
+							compteur += 1;
+							logger.info("%s", JSON.stringify(filtered, null, 2));
+						}
+					});
 				}
-			}
-			);
+			});
 		}
-		if (compteur == 0){
-			logger.warn(args.string + " non trouvé dans les fichiers gift");
+
+		// Pause avant de vérifier compteur sinon le warn s'affiche automatiquement avant la fin de la lecture
+		await sleep(1000); 
+
+		if (compteur === 0) {
+			logger.warn(`${args.string} non trouvé dans les fichiers gift`);
 		}
-		else {
-			return logger.warn("Le fichier n'est ni un fichier, ni un document.");
-			}
 	})
+
 
 	// ajouterQuestion : permet de vusialiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
 	.command('ajouterQuestion', 'Ajoute une question à un examen à préparer')
@@ -116,18 +121,22 @@ cli
 	.command('qualiteExamen', 'Vérifie la qualité d\'un examen')
 	.argument('<file>', 'The file to check with Gift parser')
 	.action(({ args, options, logger }) => {
-		s.readFile(args.file, 'utf8', function (err, data) {
-			if (err) {
-				return logger.warn(err);
-			}
+		if (fs.lstatSync(args.file).isFile()) {
+			fs.readFile(args.file, 'utf8', function (err, data) {
+				if (err) {
+					return logger.warn(err);
+				}
+				var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+				analyzer.parse(data);
 
-			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-			analyzer.parse(data);
-			var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
-			logger.info("%s", JSON.stringify(filtered, null, 2));
-
-		});
+				// Affiche uniquement les titres des questions
+				analyzer.parsedQuestion.forEach(question => {
+					logger.info(`Titre: ${question.title}\n\tSentence: ${question.sentence.join(' ')}\n\tBonnes réponses: ${question.correctAnswers.join(', ')}`);
+				});				
+			});
+		}
 	})
+
 
 
 	// readme

@@ -22,27 +22,19 @@ spec -> dossier pour les tests unitairess
 
 ## CaporalCli.js 
 ### Question
-- **equal** : commande : 
+- **checkGift** : commande : 
     ```bash
-    node CaporalCli.js compareQuestions <titre1> <sentence1> <titre2> <sentence2>
-    ```  
+    node CaporalCli.js checkGift <file>
+    ```
     Exemple d'utilisation : 
     ```bash
-    node CaporalCli.js compareQuestions "titre1" "ceci est la premiere question" "titre1" "ceci est la premiere question"
+    node CaporalCli.js checkGift TEST.gift
     ```
-- **getType** : commande : 
+- **search** : Retourne les fichiers dans lequel est présent la chaine de caractère ou préviens si la chaine de caractère n'est dans aucun fichier. commande :
     ```bash
-    node CaporalCli.js getType <titre> <sentence> <type>
-    ```  
+    node CaporalCli.js search <directory/file> <string à chercher>
+    ```
     Exemple d'utilisation : 
     ```bash
-    node CaporalCli.js getType "titrequestion" "sentence" "choix multiple"
-    ```
-- **creer** : commande : 
-    ```bash
-    node CaporalCli.js creer <type>
-    ```  
-    Exemple d'utilisation : 
-    ```bash
-    node CaporalCli.js creer "qcm"
-    ```
+    node CaporalCli.js search SujetB_data "Verb patterns"
+    ````

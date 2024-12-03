@@ -126,7 +126,7 @@ GiftParser.prototype.question = function(input){
 	// console.log(input);
 	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){ // vérfie que l'input commence bien par :: titre :: texte (ou rien)
 		var args = this.body(input) // renvoie les différentes valeurs récupérer du parsing
-		var p = new question(args.tit, args.sent)
+		var p = new question(args.tit, args.sent, "MC", [], args.cor);
 		// il manque les ans (answers) à déduire des sentences et à trier entre bonnes réponses et réponses ainsi que le type de question (à déduire)
 		this.parsedQuestion.push(p);
 		if(input.length > 0){
@@ -140,14 +140,13 @@ GiftParser.prototype.question = function(input){
 }
 
 // Récupère les différentes variables :
-GiftParser.prototype.body = function(input){
-	// var typ = this.type(input); //à faire plus tard : trouver le type 
-	var tit = this.title(input);
-	var sent = this.sentence(input);
-	// var cor = this.correctAnswer(sent); // à faire plus tard : récupérer les réponses correctes
-	// Idée le faire à partir des sentence ? (les enlever pour ensuite les mettre)
-	return { tit: tit, sent: sent}; 
-}
+GiftParser.prototype.body = function(input) {
+    const tit = this.title(input);
+    const sent = this.sentence(input);
+    const cor = sent.map(sentence => this.extractCorrectAnswers(sentence)).flat(); // Extraction des réponses correctes
+    return { tit: tit, sent: sent, cor: cor }; 
+};
+
 
 // titre = “::”  TEXT  “::”
 GiftParser.prototype.title = function(input){
@@ -183,6 +182,53 @@ GiftParser.prototype.sentence = function(input){
 	}
 	return(texte);
 }
+
+GiftParser.prototype.correctAnswer = function(input){
+	let texte = [];
+	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){
+		if(matched[2]){
+			texte.push(matched[2]);
+			}
+		}
+		else{
+			this.errMsg("Invalid title (for sentence)", input);
+		}
+	this.next(input);
+	if (input.length > 0) {
+	while(input.length > 0){
+		if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){
+		break;
+		}
+		texte.push(input[0]);
+		this.next(input);
+	}
+	}
+	return(texte);
+}
+
+GiftParser.prototype.extractCorrectAnswers = function(sentence) {
+    const regexMC = /{[^:]*:MC:~?=(.*?)(~|})/g;
+    const regexSA = /{[^:]*:SA:=(.*?)(~|})/g;
+    const regexOthers = /{=(.*?)(~|#|})/g;
+
+    let correctAnswers = [];
+    let match;
+
+    while ((match = regexMC.exec(sentence)) !== null) {
+        correctAnswers.push(match[1].trim());
+    }
+
+    while ((match = regexSA.exec(sentence)) !== null) {
+        correctAnswers.push(match[1].trim());
+    }
+
+    while ((match = regexOthers.exec(sentence)) !== null) {
+        correctAnswers.push(match[1].trim());
+    }
+	
+    return correctAnswers;
+};
+
 
 
 
