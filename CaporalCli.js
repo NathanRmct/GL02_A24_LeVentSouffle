@@ -115,6 +115,27 @@ cli
 		}
 	})
 
+	// Générer au format gift
+	.command('createGift', 'Génère au format gift un texte prédéfinit dans caporal (à changer)')
+	.argument('<file>', 'The file to name your gift')
+	.action(({ args, options, logger }) => {
+		
+		var q = new Question ("Question test",["Description", "phrase 1", "phrase 2", "Answer 1", "Answer 2"], "type1",["Answer 1", "Answer 2"] , "Answer 2");
+		var giftContent = `::${q.title}:: ${q.sentence} {\n`;
+		q.answers.forEach(answer => {
+		  if (answer == q.correctAnswers) {
+			giftContent += `=${answer}\n`;
+		  } else {
+			giftContent += `~${answer}\n`;
+		  }
+		});
+		
+		fs.writeFileSync(args.file, giftContent, "utf8");
+  		console.log(`Fichier GIFT généré : ${args.file}`);
+		
+	})
+
+
 	// readme
 	.command('readme', 'Display the README.txt file')
 	.action(({ args, options, logger }) => {
