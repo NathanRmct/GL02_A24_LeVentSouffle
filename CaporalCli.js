@@ -6,6 +6,7 @@ const path = require('path');
 const vegalite = require('vega-lite');
 const cli = require("@caporal/core").default;
 const Question = require('./lib/question.js');
+const Questionnaire = require('./lib/questionnaire.js');
 //const { forEach } = require('vega-lite/build/src/encoding.js');
 
 function sleep(ms) {
@@ -37,20 +38,20 @@ cli
 			}
 
 			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-			analyzer.parse(data);
+			var questionnaireParsed = analyzer.parse(data);
 
 			if (analyzer.errorCount === 0) {
 				logger.info("The .gift file is a valid gift file".green);
 			} else {
 				logger.info("The .gift file contains error".red);
 			}
-			logger.info("%s", JSON.stringify(analyzer.parsedQuestion, null, 2));
+			logger.info("%s", JSON.stringify(questionnaireParsed.questions, null, 2));
 
 		});
 	})
 
 	// search : vérifie si le document est compatible et affiche les données parsed (voir tokenisef si besoin)
-	.command('search', 'Check question that contains a particular string')
+	.command('search', 'Check question that contains a particular string in a file or directory')
 	.argument('<file>', 'The file or the directory to check with Gift parser')
 	.argument('<string>', 'The text to look for in the different questions')
 	.action(async ({ args, options, logger }) => {
@@ -68,6 +69,9 @@ cli
 					compteur += 1;
 					logger.info("%s", JSON.stringify(filtered, null, 2));
 				}
+				if (compteur === 0) {
+					logger.warn(`${args.string} non trouvé dans les fichiers gift`);
+				}
 			});
 		} else if (fs.lstatSync(args.file).isDirectory()) {
 			fs.readdirSync(args.file).forEach((file) => {
@@ -84,17 +88,15 @@ cli
 							compteur += 1;
 							logger.info("%s", JSON.stringify(filtered, null, 2));
 						}
+
 					});
 				}
 			});
+			if (compteur === 0) {
+				logger.warn(`${args.string} non trouvé dans les fichiers gift`);
+				}
 		}
 
-		// Pause avant de vérifier compteur sinon le warn s'affiche automatiquement avant la fin de la lecture
-		await sleep(1000); 
-
-		if (compteur === 0) {
-			logger.warn(`${args.string} non trouvé dans les fichiers gift`);
-		}
 	})
 
 
@@ -136,8 +138,6 @@ cli
 			});
 		}
 	})
-
-
 
 	// readme
 	.command('readme', 'Display the README.txt file')

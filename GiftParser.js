@@ -56,7 +56,7 @@ GiftParser.prototype.parse = function(data){
 	if(this.showTokenize){
 		console.log(tData);
 	}
-	this.questionnaire(tData);
+	return this.questionnaire(tData);
 }
 
 // errMsg : Parser operand error message
@@ -114,7 +114,7 @@ GiftParser.prototype.expect = function(s, input){
 // gift-file  =  1*((commentary / question) CRLF)
 GiftParser.prototype.questionnaire = function(input){
 	this.question(input);
-	new questionnaire(this.parsedQuestion);
+	return new questionnaire(this.parsedQuestion);
 }
 
 // question = créer une liste de question et les met dans le parsedQuestion en fonction de l'input (qui respecte l'ABNF)
