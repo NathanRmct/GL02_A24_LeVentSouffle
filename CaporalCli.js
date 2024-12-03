@@ -50,6 +50,7 @@ cli
 	.argument('<file>', 'The file or the directory to check with Gift parser')
 	.argument('<string>', 'The text to look for in the different questions')
 	.action(({ args, options, logger }) => {
+		let compteur = 0;
 		if(fs.lstatSync(args.file).isFile()){
 		fs.readFile(args.file, 'utf8', function (err, data) {
 			if (err) {
@@ -76,11 +77,16 @@ cli
 					analyzer.parse(data);
 					var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
 					if(filtered.length > 0){
-					logger.info("%s", JSON.stringify(filtered, null, 2));}
+						compteur += 1;
+						logger.info("%s", JSON.stringify(filtered, null, 2));
+					} 
 				});
 				}
 			}
 			);
+		}
+		if (compteur == 0){
+			logger.warn(args.string + " non trouvé dans les fichiers gift");
 		}
 		else {
 			return logger.warn("Le fichier n'est ni un fichier, ni un document.");

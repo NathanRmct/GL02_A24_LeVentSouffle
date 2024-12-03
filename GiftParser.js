@@ -15,6 +15,7 @@ var GiftParser = function(sTokenize, sParsedSymb){
 // On pense donc à tokenise par CRLF
 // et on enlève les commentaires : les lignes qui commencent par '//', ou par "$"
 // Enfin, on enlève les données du tableau qui sont vides
+/*
 GiftParser.prototype.tokenize = function(data){
 	// Pour MacOS
 	var separator = /(\n\n)/; 
@@ -26,7 +27,28 @@ GiftParser.prototype.tokenize = function(data){
 	data = data.filter((val, idx) => !val.startsWith('$'));
 	data = data.filter((val, idx) => val !== ''); // Remove de tout les commentaires du fichier
 	return data;
+	return data
+        .split(separator) // Divise le texte en blocs
+        .map(line => line.trim()) // Supprime les espaces inutiles
+        .filter(line => line !== "") // Supprime les lignes vides
+        .filter(line => !line.startsWith("//")) // Ignore les commentaires
+        .filter(line => !line.startsWith("$")) // Ignore les lignes commençant par "$"
+		.map(line => line.replace(/<[^>]*>/g, "")) // supprime les balises html
+		.map(line => line.replace(/\[html\]/gi, ""));  // supprime les [html]
 }
+*/
+
+GiftParser.prototype.tokenize = function(data) {
+    return data
+        .split(/\r?\n/) // Divise le texte ligne par ligne (compatible Windows/MacOS/Linux)
+        .map(line => line.trim()) // Supprime les espaces inutiles
+        .filter(line => line !== "") // Supprime les lignes vides
+        .filter(line => !line.startsWith("//")) // Ignore les commentaires
+		.filter(line => !line.startsWith("$"))
+        .map(line => line.replace(/<[^>]*>/g, "")) // Supprime les balises HTML
+        .map(line => line.replace(/\[html\]/gi, ""));  // Supprime les [html]
+};
+
 
 // parse : analyze data by calling the first non terminal rule of the grammar
 GiftParser.prototype.parse = function(data){
@@ -101,7 +123,7 @@ GiftParser.prototype.question = function(input){
         console.error("Erreur : Input vide ou ligne invalide détectée.");
         return false;
     }
-
+	// console.log(input);
 	if(matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)){ // vérfie que l'input commence bien par :: titre :: texte (ou rien)
 		var args = this.body(input) // renvoie les différentes valeurs récupérer du parsing
 		var p = new question(args.tit, args.sent)
