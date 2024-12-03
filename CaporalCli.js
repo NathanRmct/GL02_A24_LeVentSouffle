@@ -7,7 +7,7 @@ const vegalite = require('vega-lite');
 const cli = require("@caporal/core").default;
 const Question = require('./lib/question.js');
 const Questionnaire = require('./lib/questionnaire.js');
-//const { forEach } = require('vega-lite/build/src/encoding.js');
+// const { forEach } = require('vega-lite/build/src/encoding.js');
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -115,18 +115,33 @@ cli
 		}
 	})
 
-	// Générer au format gift
-	.command('createGift', 'Génère au format gift un texte prédéfinit dans caporal (à changer)')
-	.argument('<file>', 'The file to name your gift')
+	// Générer au format gift. Il manque la partie où l'on choisit les questions
+	.command('createGift', 'Génère au format gift un texte prédéfinit dans caporal ')
+	.argument('<file>', 'The name of the future file in gift')
+	.argument('<test>', 'The file to take the data from')
 	.action(({ args, options, logger }) => {
-		
-		var q = new Question ("Question test",["Description", "phrase 1", "phrase 2", "Answer 1", "=Answer 2"], "type1",["Answer 1", "Answer 2"] , "Answer 2");
 
-		var giftContent = `::${q.title}:: \n`;
-		q.sentence.forEach(sentence => giftContent += `${sentence} \n`)
-		giftContent += ' \n';
-		fs.writeFileSync(args.file, giftContent, "utf8");
-  		console.log(`Fichier GIFT généré : ${args.file}`);
+		var questionnaire;
+		fs.readFile(args.test, 'utf8', function (err, data) {
+			if (err) {
+				return logger.warn(err);
+			}
+
+			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+			questionnaire = analyzer.parse(data);
+			logger.info("%s", JSON.stringify(questionnaire.questions, null, 2));
+			var giftContent;
+			questionnaire.questions.forEach(q => {
+				giftContent += `::${q.title}:: \n`;
+				q.sentence.forEach(sentence => giftContent += `${sentence} \n`)
+				giftContent += ' \n';});
+			fs.writeFileSync(args.file, giftContent, "utf8");
+			console.log(`Fichier GIFT généré : ${args.file}`);
+		
+		
+		// transformation de la variable questionnaire en fichier gift
+		
+	})
 		
 	})
 
