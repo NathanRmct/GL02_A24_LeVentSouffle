@@ -16,14 +16,7 @@ function sleep(ms) {
 
 cli
 	.version('vpf-parser-cli')
-	.version('0.01')
-
-	// test : vérifie si l'interface répond à une demande de base
-	.command('test', 'test si la relation de base fonctionne')
-	.action(({ logger }) => {
-		logger.info("ça fonctionne")
-
-	})
+	.version('0.5')
 
 	// checkGift : vérifie si le document est compatible et affiche les données parsed (voir tokenisef si besoin)
 	.command('checkGift', 'Check if <file> is a valid gift file')
@@ -98,25 +91,9 @@ cli
 
 	})
 
-	// A CHANGER POUR CREER UN QUESTIONNAIRE (voir au dessus pour la recherche de questions)
-	// ajouterQuestion : permet de vusialiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
-	.command('ajouterQuestion', 'Ajoute une question à un examen à préparer')
-	.argument('<file>', 'The file to check with Gift parser')
-	.argument('<string>', 'The text to look for in the different questions')
-	.action(({ args, options, logger }) => {
+	// A Faire POUR CREER UN QUESTIONNAIRE (voir au dessus pour la recherche de questions)
+	// crerQuestionnaire : permet de visualiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
 
-		fs.readFile(args.file, 'utf8', function (err, data) {
-			if (err) {
-				return logger.warn(err);
-			}
-
-			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-			analyzer.parse(data);
-			var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
-			logger.info("%s", JSON.stringify(filtered, null, 2));
-
-		});
-	})
 
 	// qualiteExamen : vérifier la qualité d'un examen
 	.command('qualiteExamen', 'Vérifie la qualité d\'un examen')
