@@ -121,26 +121,29 @@ cli
 	.argument('<test>', 'The file to take the data from')
 	.action(({ args, options, logger }) => {
 
-		var questionnaire;
+		
+		// on peut enlever la lecture, puisque c'est les questions déterminé par l'utilisateur qui vont être choisi
 		fs.readFile(args.test, 'utf8', function (err, data) {
 			if (err) {
 				return logger.warn(err);
 			}
+			// la variable questionnaire est à garder : c'est ce que l'on va ensuite transformer en gift
+			var questionnaire;
 
+			// A enlever et remplacer par la nouvelle conception du formulaire
 			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
 			questionnaire = analyzer.parse(data);
-			logger.info("%s", JSON.stringify(questionnaire.questions, null, 2));
-			var giftContent;
+			
+
+			// transformation de la variable questionnaire en fichier gift (changer la variable questionnaire en le questionnaire adéquat)
+			var giftContent = '';
+			// pour chaque question, on recopie le titre et la variable sentence
 			questionnaire.questions.forEach(q => {
 				giftContent += `::${q.title}:: \n`;
 				q.sentence.forEach(sentence => giftContent += `${sentence} \n`)
 				giftContent += ' \n';});
-			fs.writeFileSync(args.file, giftContent, "utf8");
-			console.log(`Fichier GIFT généré : ${args.file}`);
-		
-		
-		// transformation de la variable questionnaire en fichier gift
-		
+			fs.writeFileSync(`${args.file}.gift`, giftContent, "utf8");
+			console.log(`Fichier GIFT généré : ${args.file}.gift`);
 	})
 		
 	})
