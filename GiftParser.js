@@ -56,7 +56,8 @@ GiftParser.prototype.parse = function(data){
 	if(this.showTokenize){
 		console.log(tData);
 	}
-	return this.questionnaire(tData);
+	questionnaireParsed = this.questionnaire(tData);
+	return questionnaireParsed;
 }
 
 // errMsg : Parser operand error message

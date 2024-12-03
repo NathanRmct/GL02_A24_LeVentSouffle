@@ -38,14 +38,13 @@ cli
 			}
 
 			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-			var questionnaireParsed = analyzer.parse(data);
-
+			var questionsParsed = analyzer.parse(data);
 			if (analyzer.errorCount === 0) {
 				logger.info("The .gift file is a valid gift file".green);
 			} else {
 				logger.info("The .gift file contains error".red);
 			}
-			logger.info("%s", JSON.stringify(questionnaireParsed.questions, null, 2));
+			logger.info("%s", JSON.stringify(questionsParsed.questions, null, 2));
 
 		});
 	})
@@ -99,7 +98,7 @@ cli
 
 	})
 
-
+	// A CHANGER POUR CREER UN QUESTIONNAIRE (voir au dessus pour la recherche de questions)
 	// ajouterQuestion : permet de vusialiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
 	.command('ajouterQuestion', 'Ajoute une question à un examen à préparer')
 	.argument('<file>', 'The file to check with Gift parser')
