@@ -120,16 +120,11 @@ cli
 	.argument('<file>', 'The file to name your gift')
 	.action(({ args, options, logger }) => {
 		
-		var q = new Question ("Question test",["Description", "phrase 1", "phrase 2", "Answer 1", "Answer 2"], "type1",["Answer 1", "Answer 2"] , "Answer 2");
-		var giftContent = `::${q.title}:: ${q.sentence} {\n`;
-		q.answers.forEach(answer => {
-		  if (answer == q.correctAnswers) {
-			giftContent += `=${answer}\n`;
-		  } else {
-			giftContent += `~${answer}\n`;
-		  }
-		});
-		
+		var q = new Question ("Question test",["Description", "phrase 1", "phrase 2", "Answer 1", "=Answer 2"], "type1",["Answer 1", "Answer 2"] , "Answer 2");
+
+		var giftContent = `::${q.title}:: \n`;
+		q.sentence.forEach(sentence => giftContent += `${sentence} \n`)
+		giftContent += ' \n';
 		fs.writeFileSync(args.file, giftContent, "utf8");
   		console.log(`Fichier GIFT généré : ${args.file}`);
 		
