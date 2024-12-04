@@ -152,6 +152,9 @@ cli
 		vCard.homeAddress.city = prompt('Entrez votre ville : ');
 		vCard.homeAddress.countryRegion = prompt('Entrez votre Pays : ');
 		
+		// spécification de la version vCard (version 4.0 conseillée par le cahier des charges)
+		vCard.version = '4.0';
+
 		// exportation en fichier .vcf
 		vCard.saveToFile(`./vCard/${args.file}.vcf`);
 
