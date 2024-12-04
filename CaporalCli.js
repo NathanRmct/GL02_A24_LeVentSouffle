@@ -7,6 +7,8 @@ const vegalite = require('vega-lite');
 const cli = require("@caporal/core").default;
 const Question = require('./lib/question.js');
 const Questionnaire = require('./lib/questionnaire.js');
+const vCardsJS = require('vcards-js');
+const prompt = require('prompt-sync')();
 // const { forEach } = require('vega-lite/build/src/encoding.js');
 
 function sleep(ms) {
@@ -148,6 +150,35 @@ cli
 		
 	})
 
+	// createVcard : création du fichier vcard pour l'enseignant
+	// bibliothèques utilisées :
+	//	- vcards-js (https://www.npmjs.com/package/vcards-js): création et exportation de vcards
+	// 	- prompt-sync (https://www.npmjs.com/package/prompt-sync?activeTab=readme) : demander et lire l'input de l'utilisateur
+	.command('createVcard', 'Créé un fichier vcard pour le profil de l\'enseignant')
+	.argument('<file>', 'Nom du fichier vcard')
+	.action(({args, options, logger}) =>{
+		// création de l'objet vCard
+		var vCard = vCardsJS();
+
+		// Remplissage des informations : Prénom, nom, email, organisation, adresse (numéro, rue, code postal, ville, pays)
+		vCard.firstName = prompt('Entrez votre prénom : ');
+		vCard.lastName = prompt('Entrez votre nom : ');
+		vCard.email = prompt('Entrez votre email : ');
+		vCard.organization = prompt('Entrez le nom de votre organisation : ');
+		console.log('Adresse :');
+		vCard.homeAddress.street = prompt('Entrez votre numéro et votre rue : ');
+		vCard.homeAddress.postalCode = prompt('Entrez votre code postal : ');
+		vCard.homeAddress.city = prompt('Entrez votre ville : ');
+		vCard.homeAddress.countryRegion = prompt('Entrez votre Pays : ');
+		
+		// exportation en fichier .vcf
+		vCard.saveToFile(`./vCard/${args.file}.vcf`);
+
+		// Affichage de la vCard dans la console 
+		console.log(`vCard "${args.file}.vcf" créée :`);
+		console.log(vCard.getFormattedString());
+
+	})
 
 	// readme
 	.command('readme', 'Display the README.txt file')
