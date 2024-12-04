@@ -160,10 +160,22 @@ cli
 		// création de l'objet vCard
 		var vCard = vCardsJS();
 
-		// Remplissage des informations : Prénom, nom, email, organisation, adresse (numéro, rue, code postal, ville, pays)
+		// Remplissage des informations : Prénom, nom, email, numéro de téléphone, organisation, adresse (numéro, rue, code postal, ville, pays)
+		// Gestion des erreurs : Le prénom, le nom et l'email sont obligatoires
+		console.log("Veuillez entrer vos informations : \nNote : Les champs prénom, nom et email sont obligatoires et ne peuvent pas être vides.\n")
 		vCard.firstName = prompt('Entrez votre prénom : ');
+		if (vCard.firstName.replaceAll(" ", "") === ""){
+			throw new Error("L'entrée prénom ne peut pas être vide.\n La vCard n'a pas pu être créée.");
+		}
 		vCard.lastName = prompt('Entrez votre nom : ');
+		if (vCard.lastName.replaceAll(" ", "") === ""){
+			throw new Error("L'entrée nom ne peut pas être vide.\n La vCard n'a pas pu être créée.");
+		}
 		vCard.email = prompt('Entrez votre email : ');
+		if (vCard.email.replaceAll(" ", "") === ""){
+			throw new Error("L'entrée email ne peut pas être vide.\n La vCard n'a pas pu être créée.");
+		}
+		vCard.workPhone = prompt('Entrez votre numéro de téléphone : ');
 		vCard.organization = prompt('Entrez le nom de votre organisation : ');
 		console.log('Adresse :');
 		vCard.homeAddress.street = prompt('Entrez votre numéro et votre rue : ');
@@ -177,6 +189,7 @@ cli
 		// Affichage de la vCard dans la console 
 		console.log(`vCard "${args.file}.vcf" créée :`);
 		console.log(vCard.getFormattedString());
+		console.log(`La vCard "${args.file}.vcf" est enregistrée dans le dossier "vCard"`);
 
 	})
 
