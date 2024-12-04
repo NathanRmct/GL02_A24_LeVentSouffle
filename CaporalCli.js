@@ -49,52 +49,21 @@ cli
 	.argument('<file>', 'The file or the directory to check with Gift parser')
 	.argument('<string>', 'The text to look for in the different questions')
 	.action(async ({ args, options, logger }) => {
-		let compteur = 0;
-
-		if (fs.lstatSync(args.file).isFile()) {
-			fs.readFile(args.file, 'utf8', function (err, data) {
-				if (err) {
-					return logger.warn(err);
-				}
-				var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-				analyzer.parse(data);
-				var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
-				if (filtered.length > 0) {
-					compteur += 1;
-					logger.info("%s", JSON.stringify(filtered, null, 2));
-				}
-				if (compteur === 0) {
-					logger.warn(`${args.string} non trouvé dans les fichiers gift`);
-				}
-			});
-		} else if (fs.lstatSync(args.file).isDirectory()) {
-			fs.readdirSync(args.file).forEach((file) => {
-				const fullPath = path.join(args.file, file);
-				if (fs.lstatSync(fullPath).isFile()) {
-					fs.readFile(fullPath, 'utf8', function (err, data) {
-						if (err) {
-							return logger.warn(err);
-						}
-						var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-						analyzer.parse(data);
-						var filtered = analyzer.parsedQuestion.filter(q => q.search(args.string));
-						if (filtered.length > 0) {
-							compteur += 1;
-							logger.info("%s", JSON.stringify(filtered, null, 2));
-						}
-
-					});
-				}
-			});
-			if (compteur === 0) {
-				logger.warn(`${args.string} non trouvé dans les fichiers gift`);
-				}
-		}
+		var questionsFiltered = await search(args.file, options, logger, args.string);
+		logger.info("%s", JSON.stringify(questionsFiltered, null, 2));
 
 	})
 
-	// A Faire POUR CREER UN QUESTIONNAIRE (voir au dessus pour la recherche de questions)
-	// crerQuestionnaire : permet de visualiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
+
+	// crerGift : permet de visualiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
+	.command('search', 'Check question that contains a particular string in a file or directory')
+	.argument('<file>', 'The file or the directory to check with Gift parser')
+	.argument('<string>', 'The text to look for in the different questions')
+	.action(async ({ args, options, logger }) => {
+		var questionsFiltered = await search(args, options, logger);
+		logger.info("%s", JSON.stringify(questionsFiltered, null, 2));
+
+	})
 
 
 	// qualiteExamen : vérifier la qualité d'un examen
@@ -194,9 +163,9 @@ cli
 	})
 
 	// readme
-	.command('readme', 'Display the README.txt file')
+	.command('readme', 'Display the README.md file')
 	.action(({ args, options, logger }) => {
-		fs.readFile("./README.txt", 'utf8', function (err, data) {
+		fs.readFile("./README.md", 'utf8', function (err, data) {
 			if (err) {
 				return logger.warn(err);
 			}
@@ -207,3 +176,62 @@ cli
 	})
 
 cli.run(process.argv.slice(2));
+
+// Fonction de recherche affichant les informations et retournant la liste des questions trouvé en assynchrone
+// Elle renvoit la liste de toutes les questions trouvé via un mot clé donné dans args.string
+async function search(file, options, logger, string){
+var resultatSearched = [];
+// cas fichier unique
+if (fs.lstatSync(file).isFile()) {
+	try {
+		let data = await fs.promises.readFile(file, 'utf8');
+		var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+		analyzer.parse(data);
+		var filtered = analyzer.parsedQuestion.filter(q => q.search(string));
+		if (filtered.length > 0) {
+			filtered.forEach((question) => resultatSearched.push(question));
+			return(resultatSearched);
+		}
+		else {
+			logger.warn(`${string} non trouvé dans les fichiers gift`);
+			return(resultatSearched);
+		}}
+		catch (err) {
+			logger.warn(`Erreur lors de la lecture de ${file} :`, err);
+		  }
+		
+	}
+else if (fs.lstatSync(file).isDirectory()) {
+	var compteur = 0;
+	const files = fs.readdirSync(file); 
+	for (const file of files) {
+		const fullPath = path.join(file, file);
+		if (fs.lstatSync(fullPath).isFile()) {
+			try {
+			   let data = await fs.promises.readFile(fullPath, 'utf8');
+
+				var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+				analyzer.parse(data);
+
+				var filtered = analyzer.parsedQuestion.filter(q => q.search(string));
+
+				if (filtered.length > 0) {
+					compteur ++;
+					filtered.forEach((question) => resultatSearched.push(question));
+				}
+
+			}
+		catch (err) {
+			logger.warn(`Erreur lors de la lecture de ${fullPath} :`, err);
+		  }
+		}
+	};
+	if (compteur > 0){
+	return(resultatSearched);
+	}
+	else {
+	logger.warn(`${string} non trouvé dans les fichiers gift`)
+	return(resultatSearched);
+	}
+	}
+}
