@@ -44,23 +44,12 @@ cli
 		});
 	})
 
-	// search : vérifie si le document est compatible et affiche les données parsed (voir tokenisef si besoin)
+	// search : retrouve toutes les questions dans un fichier / répertoire contenant un motclé précis.
 	.command('search', 'Check question that contains a particular string in a file or directory')
 	.argument('<file>', 'The file or the directory to check with Gift parser')
 	.argument('<string>', 'The text to look for in the different questions')
 	.action(async ({ args, options, logger }) => {
 		var questionsFiltered = await search(args.file, options, logger, args.string);
-		logger.info("%s", JSON.stringify(questionsFiltered, null, 2));
-
-	})
-
-
-	// crerGift : permet de visualiser les question, d'en sélectionner une ou plusieurs et de les ajouter à la liste des questions de l'examen en préparation
-	.command('search', 'Check question that contains a particular string in a file or directory')
-	.argument('<file>', 'The file or the directory to check with Gift parser')
-	.argument('<string>', 'The text to look for in the different questions')
-	.action(async ({ args, options, logger }) => {
-		var questionsFiltered = await search(args, options, logger);
 		logger.info("%s", JSON.stringify(questionsFiltered, null, 2));
 
 	})
@@ -87,35 +76,82 @@ cli
 	})
 
 	// Générer au format gift. Il manque la partie où l'on choisit les questions
-	.command('createGift', 'Génère au format gift un texte prédéfinit dans caporal ')
-	.argument('<file>', 'The name of the future file in gift')
-	.argument('<test>', 'The file to take the data from')
-	.action(({ args, options, logger }) => {
+	.command('createGift', 'Génère au format gift un questionnaire à partir de questions provenant d un autre fichier ou d un dossier de questionnnaires gift')
+	.argument('<file>', 'The file or the directory to check with Gift parser')
+	.argument('<name>', 'The name of your future file Gift with questions')
+	.action(async ({ args, options, logger }) => {
+		var selectedQuestions = [];
 
-		
-		// on peut enlever la lecture, puisque c'est les questions déterminé par l'utilisateur qui vont être choisi
-		fs.readFile(args.test, 'utf8', function (err, data) {
-			if (err) {
-				return logger.warn(err);
+		while (true) {
+			// Récupère le mot clé utilisé dans la recherche
+			const keyword = prompt("Entrez un mot-clé pour rechercher des questions : ");
+			if (!keyword) {
+			  console.log("Mot-clé vide. Réessayez.");
+			  continue;
 			}
-			// la variable questionnaire est à garder : c'est ce que l'on va ensuite transformer en gift
-			var questionnaire;
+		
+			// Effectue la recherche
+			const searchResults = await search(args.file, options, logger, keyword);
+		
+			// Condition si pas de questions trouvées
+			if (searchResults.length === 0) {
+			  console.log(`Aucune question trouvée pour le mot-clé : ${keyword}`);
+			  continue; // permet de passer à la suite
+			}
+		
+			// Affiche les différentes questions trouvées avec un index pour l'utilisateur
+			console.log("\n Questions trouvées : \n");
+			searchResults.forEach((question, index) => {
+			  logger.info(index + 1);
+			  logger.info("%s", JSON.stringify(question, null, 2));
+			});
+		
+			// Récupère l'indice choisie par l'utilisateur
+			const choice = prompt(
+			  "Entrez le numéro de la question à ajouter (ou appuyez sur Entrée pour annuler) : "
+			);
+		
+			// Si l'utilisateur ne choisie pas le bon index, rien n'est ajoutée
+			if (!choice || isNaN(choice) || choice < 1 || choice > searchResults.length) {
+			  console.log("Aucune question ajoutée.");
+			} 
+			 
+			// Si l'utilisateur a choisie un index qui correspond, on ajoute la question à la liste de questio 
+			else {
+			  const selectedQuestion = searchResults[Number(choice) - 1];
+			  selectedQuestions.push(selectedQuestion);
+			  logger.info(`Question ajoutée :`);
+			  logger.info("%s", JSON.stringify(selectedQuestion, null, 2));
+			}
+		
+			// Demande si l'utilisateur souhaite continuer
+			const continueSearching = prompt(
+			  "Voulez-vous continuer à chercher des questions ? (y/n) : "
+			).toLowerCase();
+		
+			if (continueSearching !== "y") {
+			  break;
+			}
+		  }
 
-			// A enlever et remplacer par la nouvelle conception du formulaire
-			var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-			questionnaire = analyzer.parse(data);
-			
 
+		if(selectedQuestions.length > 0){
+			// Transformation de la liste de question en questionnaire
+			var questionnaireSearched = new Questionnaire(selectedQuestions);
 			// transformation de la variable questionnaire en fichier gift (changer la variable questionnaire en le questionnaire adéquat)
 			var giftContent = '';
 			// pour chaque question, on recopie le titre et la variable sentence
-			questionnaire.questions.forEach(q => {
+			questionnaireSearched.questions.forEach(q => {
 				giftContent += `::${q.title}:: \n`;
 				q.sentence.forEach(sentence => giftContent += `${sentence} \n`)
 				giftContent += ' \n';});
-			fs.writeFileSync(`${args.file}.gift`, giftContent, "utf8");
-			console.log(`Fichier GIFT généré : ${args.file}.gift`);
-	})
+			fs.writeFileSync(`${args.name}.gift`, giftContent, "utf8");
+			console.log(`Fichier GIFT généré : ${args.name}.gift`);
+		}
+		else{
+			logger.info("Aucune questions choisies, pas de fichier créé")
+		}
+	
 		
 	})
 
@@ -204,8 +240,8 @@ if (fs.lstatSync(file).isFile()) {
 else if (fs.lstatSync(file).isDirectory()) {
 	var compteur = 0;
 	const files = fs.readdirSync(file); 
-	for (const file of files) {
-		const fullPath = path.join(file, file);
+	for (const openfile of files) {
+		const fullPath = path.join(file, openfile);
 		if (fs.lstatSync(fullPath).isFile()) {
 			try {
 			   let data = await fs.promises.readFile(fullPath, 'utf8');
