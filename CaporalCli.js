@@ -9,6 +9,7 @@ const Question = require('./lib/question.js');
 const Questionnaire = require('./lib/questionnaire.js');
 const vCardsJS = require('vcards-js');
 const prompt = require('prompt-sync')();
+const open = require('open'); // version 8.4.2 pour pouvoir être utilisé en require : npm i open@8.4.2
 // const { forEach } = require('vega-lite/build/src/encoding.js');
 
 function sleep(ms) {
@@ -147,6 +148,9 @@ cli
 				giftContent += ' \n';});
 			fs.writeFileSync(`${args.name}.gift`, giftContent, "utf8");
 			logger.info(`Fichier GIFT généré : ${args.name}.gift`);
+
+			// Ouverture du fichier .gift créé
+			open(`./${args.name}.gift`);
 		}
 		else{
 			logger.info("Aucune questions choisies, pas de fichier créé");
@@ -159,6 +163,7 @@ cli
 	// bibliothèques utilisées :
 	//	- vcards-js (https://www.npmjs.com/package/vcards-js): création et exportation de vcards
 	// 	- prompt-sync (https://www.npmjs.com/package/prompt-sync?activeTab=readme) : demander et lire l'input de l'utilisateur
+	// 	- open version 8.4.2 (https://www.npmjs.com/package/open/v/8.4.2) : permet d'ouvrir le fichier .vcf à la fin de la commande
 	.command('createVcard', 'Créé un fichier vcard pour le profil de l\'enseignant')
 	.argument('<file>', 'Nom du fichier vcard')
 	.action(({args, options, logger}) =>{
@@ -167,7 +172,7 @@ cli
 
 		// Remplissage des informations : Prénom, nom, email, numéro de téléphone, organisation, adresse (numéro, rue, code postal, ville, pays)
 		// Gestion des erreurs : Le prénom, le nom et l'email sont obligatoires
-		console.log("Veuillez entrer vos informations : \nNote : Les champs prénom, nom et email sont obligatoires et ne peuvent pas être vides.\n")
+		logger.info("Veuillez entrer vos informations : \nNote : Les champs prénom, nom et email sont obligatoires et ne peuvent pas être vides.\n");
 		vCard.firstName = prompt('Entrez votre prénom : ');
 		if (vCard.firstName.replaceAll(" ", "") === ""){
 			throw new Error("L'entrée prénom ne peut pas être vide.\n La vCard n'a pas pu être créée.");
@@ -195,9 +200,12 @@ cli
 		vCard.saveToFile(`./vCard/${args.file}.vcf`);
 
 		// Affichage de la vCard dans la console 
-		console.log(`vCard "${args.file}.vcf" créée :`);
-		console.log(vCard.getFormattedString());
-		console.log(`La vCard "${args.file}.vcf" est enregistrée dans le dossier "vCard"`);
+		/*console.log(`vCard "${args.file}.vcf" créée :`);
+		console.log(vCard.getFormattedString());*/
+
+		// Ouverture de la vCard
+		open(`./vCard/${args.file}.vcf`);
+		logger.info(`La vCard "${args.file}.vcf" a été générée. \nElle est enregistrée dans le dossier "vCard"`);
 
 	})
 
@@ -205,6 +213,7 @@ cli
 	// bibliothèques utilisées :
 	// 	- FileSystem (fs) : lecture du fichier gift et exportation sous le format .svg
 	// 	- vega (vg) : création de l'histogramme, adaptation au format .svg
+	// 	- open version 8.4.2 (https://www.npmjs.com/package/open/v/8.4.2) : permet d'ouvrir le fichier .svg à la fin de la commande
 	.command('examChart', 'Créé un fichier .svg permettant de visualiser le profil d\'un examen')
 	.argument('<file>', 'Le fichier correspondant à l\'examen')
 	.action(({args, options, logger}) => {
@@ -261,6 +270,9 @@ cli
 					//logger.info("%s", JSON.stringify(myChart, null, 2));
 					logger.info("Histogramme créé. \nVous pouvez le retrouver dans le dossier \"chart\" sous le nom examChart.svg");
 				});
+
+				// Ouverture du fichier
+				open('./chart/examChart.svg');
 				
 			}else{
 				logger.info("Le fichier .gift contient une erreur.".red);
