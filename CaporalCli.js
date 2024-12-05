@@ -201,6 +201,71 @@ cli
 
 	})
 
+	// examChart : création d'un histogramme sous le format .svg représentant le profil d'un examen
+	// bibliothèques utilisées :
+	// 	- FileSystem (fs) : lecture du fichier gift et exportation sous le format .svg
+	// 	- vega (vg) : création de l'histogramme, adaptation au format .svg
+	.command('examChart', 'Créé un fichier .svg permettant de visualiser le profil d\'un examen')
+	.argument('<file>', 'Le fichier correspondant à l\'examen')
+	.action(({args, options, logger}) => {
+
+		// Lecture du fichier
+		fs.readFile(args.file, 'utf8', function (err,data) {
+			if (err) {
+				return logger.warn(err);
+			}
+
+			// Utilisation du parseur
+			var analyzer = new GiftParser();
+			analyzer.parse(data);
+			
+			// Compte le nombre de questions de l'examen pour pouvoir calculer le pourcentage ensuite
+			var len = analyzer.parsedQuestion.length
+
+			if(analyzer.errorCount === 0){
+
+				// création du graphique : on extrait directement l'attribut "type" de l'objet parsedQuestion
+				// on calcule le pourcentage en sommant le pourcentage représentant chaque question par type
+				var examChart = {
+					//"width": 320,
+					//"height": 460,
+					"title": "Nombre de questions du questionnaire "+args.file+" en fonction de leur type",
+					"data" : {
+							"values" : analyzer.parsedQuestion
+					},
+					"transform": [
+						{"calculate": "1/"+len+"", "as": "perc"},
+					],
+					"mark" : "bar",
+					"encoding" : {
+						"x" : {"field" : "type", "type" : "nominal",
+								"axis" : {"title" : "Type de question"}
+							},
+						"y" : {"aggregate" : "sum", "field" : "perc", "type" : "quantitative",
+								"axis" : {"title" : "Pourcentage"}
+							}
+					}
+				}
+				
+				const myChart = vegalite.compile(examChart).spec;
+				
+				// Création du fichier SVG
+				var runtime = vg.parse(myChart);
+				var view = new vg.View(runtime).renderer('svg').run();
+				var mySvg = view.toSVG();
+				mySvg.then(function(res){
+					fs.writeFileSync("./chart/examChart.svg", res)
+					view.finalize();
+					//logger.info("%s", JSON.stringify(myChart, null, 2));
+					logger.info("Histogramme créé. \nVous pouvez le retrouver dans le dossier \"chart\" sous le nom examChart.svg");
+				});
+				
+			}else{
+				logger.info("Le fichier .gift contient une erreur.".red);
+			}
+		});
+	})	
+
 	// readme
 	.command('readme', 'Display the README.md file')
 	.action(({ args, options, logger }) => {
