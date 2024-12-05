@@ -215,23 +215,25 @@ cli
 				return logger.warn(err);
 			}
 
-			// Utilisation du parseur
+			// Création d'un nouveau parseur
 			var analyzer = new GiftParser();
-			analyzer.parse(data);
+
+			// Transformation des données du fichier gift en objet questionnaire
+			var questionsParsed = analyzer.parse(data);
 			
 			// Compte le nombre de questions de l'examen pour pouvoir calculer le pourcentage ensuite
-			var len = analyzer.parsedQuestion.length
+			var len = questionsParsed.size();
 
 			if(analyzer.errorCount === 0){
 
-				// création du graphique : on extrait directement l'attribut "type" de l'objet parsedQuestion
+				// création du graphique : on extrait directement l'attribut "type" des questions de l'objet questionsParsed
 				// on calcule le pourcentage en sommant le pourcentage représentant chaque question par type
 				var examChart = {
 					//"width": 320,
 					//"height": 460,
 					"title": "Nombre de questions du questionnaire "+args.file+" en fonction de leur type",
 					"data" : {
-							"values" : analyzer.parsedQuestion
+							"values" : questionsParsed.questions
 					},
 					"transform": [
 						{"calculate": "1/"+len+"", "as": "perc"},
