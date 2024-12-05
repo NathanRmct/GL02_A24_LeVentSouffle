@@ -146,10 +146,10 @@ cli
 				q.sentence.forEach(sentence => giftContent += `${sentence} \n`)
 				giftContent += ' \n';});
 			fs.writeFileSync(`${args.name}.gift`, giftContent, "utf8");
-			console.log(`Fichier GIFT généré : ${args.name}.gift`);
+			logger.info(`Fichier GIFT généré : ${args.name}.gift`);
 		}
 		else{
-			logger.info("Aucune questions choisies, pas de fichier créé")
+			logger.info("Aucune questions choisies, pas de fichier créé");
 		}
 	
 		
