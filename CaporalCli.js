@@ -164,6 +164,7 @@ cli
 	//	- vcards-js (https://www.npmjs.com/package/vcards-js): création et exportation de vcards
 	// 	- prompt-sync (https://www.npmjs.com/package/prompt-sync?activeTab=readme) : demander et lire l'input de l'utilisateur
 	// 	- open version 8.4.2 (https://www.npmjs.com/package/open/v/8.4.2) : permet d'ouvrir le fichier .vcf à la fin de la commande
+	// 	- FileSystem (fs) : suppression de la vCard
 	.command('createVcard', 'Créé un fichier vcard pour le profil de l\'enseignant')
 	.argument('<file>', 'Nom du fichier vcard')
 	.action(({args, options, logger}) =>{
@@ -202,10 +203,17 @@ cli
 		// Affichage de la vCard dans la console 
 		/*console.log(`vCard "${args.file}.vcf" créée :`);
 		console.log(vCard.getFormattedString());*/
-
-		// Ouverture de la vCard
-		open(`./vCard/${args.file}.vcf`);
 		logger.info(`La vCard "${args.file}.vcf" a été générée. \nElle est enregistrée dans le dossier "vCard"`);
+
+		// Ouverture et suppression du fichier en asynchrone
+		openDeleteVcard(`./vCard/${args.file}.vcf`).then(r => {
+			if (r){
+				logger.info("Le fichier a bien été supprimé.");
+			}
+			else {
+				logger.warn("Erreur : le fichier n'a pas pu être supprimé conformément aux directives RPGD. Veuillez prendre manuellement les mesures nécessaires.");
+			}
+		})
 
 	})
 
@@ -463,5 +471,25 @@ else if (fs.lstatSync(file).isDirectory()) {
 	logger.warn(`${string} non trouvé dans les fichiers gift`)
 	return(resultatSearched);
 	}
+	}
+}
+
+// Ouverture et suppresion de la vCard en asynchrone
+async function openDeleteVcard(path){
+	// Ouverture de la vCard
+	await open(path);
+
+	// Suppression de la vCard : SPEC_NF_01 (respect des RGPD)
+	var response = "";
+	while ((response != "Y") && (response != "y")){
+		console.log("Afin de respecter les RGPD, le fichier vcard sera détruit à la fin de l'exécution de cette commande. Vous pouvez le copier afin de conserver son contenu.");
+		response = prompt("Suppression du fichier ? [Y] ");
+	}
+	try {
+		await fs.promises.unlink(path);
+		return true;
+	} catch (err){
+		console.error(err);
+		return false;
 	}
 }
