@@ -242,10 +242,8 @@ cli
 			if(analyzer.errorCount === 0){
 
 				// création du graphique : on extrait directement l'attribut "type" des questions de l'objet questionsParsed
-				// on calcule le pourcentage agrégant
+				// on calcule le pourcentage par agrégation
 				var examChart = {
-					//"width": 320,
-					//"height": 460,
 					"title": "Profil de l'examen "+args.file+"",
 					"data" : {
 							"values" : questionsParsed.questions
@@ -309,14 +307,14 @@ cli
 		})
 
 		// Création d'un nouveau parseur
-		var analyzer = new GiftParser();
+		var analyzerExam = new GiftParser();
 
-		analyzer.parse(data);
+		analyzerExam.parse(data);
 
 
-		if (analyzer.errorCount === 0){
+		if (analyzerExam.errorCount === 0){
 			// Création de la liste qui va contenir toutes les questions
-			var questionList = analyzer.parsedQuestion.map(q => {
+			var questionList = analyzerExam.parsedQuestion.map(q => {
 				q["groupe"] = "examen choisi"; // les questions font partie de l'examen choisi
 				return q;
 			})
@@ -332,10 +330,11 @@ cli
 			if (fs.lstatSync(fullPath).isFile()) {
 				try {
 				   	let data = fs.readFileSync(fullPath, 'utf8');
-	
-					var analyzer = new GiftParser();
-					analyzer.parse(data);
-					var nationalExam = analyzer.parsedQuestion.map(q => {
+					
+					// Parseur pour les questions de la banque nationale
+					var analyzerNational = new GiftParser();
+					analyzerNational.parse(data);
+					var nationalExam = analyzerNational.parsedQuestion.map(q => {
 						q["groupe"] = "profil moyen"; // les questions font partie de la banque nationale
 						return q;
 					})
@@ -352,8 +351,6 @@ cli
 		// Création du graphique : on extrait directement l'attribut "type" des objets question contenus dans la liste questionList
 		// On sépare les données selon leur groupe, puis on calcule le pourcentage des types de question par agrégation
 		var globalChart = {
-			//"width": 320,
-			//"height": 460,
 			"title": "Comparaison entre le profil de l'examen "+args.file+" et le profil moyen (banque nationale)",
 			"data" : {
 					"values" : questionList
@@ -392,7 +389,6 @@ cli
 		mySvg.then(function(res){
 			fs.writeFileSync("./chart/globalChart.svg", res)
 			view.finalize();
-			//logger.info("%s", JSON.stringify(myChart, null, 2));
 			logger.info("Histogramme créé. \nVous pouvez le retrouver dans le dossier \"chart\" sous le nom globalChart.svg");
 		});
 
@@ -595,7 +591,7 @@ async function openDeleteVcard(path){
 	// Suppression de la vCard : SPEC_NF_01 (respect des RGPD)
 	var response = "";
 	while ((response != "Y") && (response != "y")){
-		console.log("Afin de respecter les RGPD, le fichier vcard sera détruit à la fin de l'exécution de cette commande. Vous pouvez le copier afin de conserver son contenu.");
+		console.log("Afin de respecter les RGPD, le fichier vcard sera supprimé à la fin de l'exécution de cette commande. Vous pouvez le copier afin de conserver son contenu.");
 		response = prompt("Suppression du fichier ? [Y] ");
 	}
 	try {
