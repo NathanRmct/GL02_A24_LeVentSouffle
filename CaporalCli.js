@@ -229,31 +229,33 @@ cli
 
 			// Transformation des données du fichier gift en objet questionnaire
 			var questionsParsed = analyzer.parse(data);
-			
-			// Compte le nombre de questions de l'examen pour pouvoir calculer le pourcentage ensuite
-			var len = questionsParsed.size();
 
 			if(analyzer.errorCount === 0){
 
 				// création du graphique : on extrait directement l'attribut "type" des questions de l'objet questionsParsed
-				// on calcule le pourcentage en sommant le pourcentage représentant chaque question par type
+				// on calcule le pourcentage agrégant
 				var examChart = {
 					//"width": 320,
 					//"height": 460,
-					"title": "Nombre de questions du questionnaire "+args.file+" en fonction de leur type",
+					"title": "Profil de l'examen "+args.file+"",
 					"data" : {
 							"values" : questionsParsed.questions
 					},
 					"transform": [
-						{"calculate": "1/"+len+"", "as": "perc"},
+						{ "joinaggregate" : [{
+								"op" : "count",
+								"as" : "total"
+							}]
+						},
+						{"calculate": "1/datum.total", "as": "perc"},
 					],
 					"mark" : "bar",
 					"encoding" : {
 						"x" : {"field" : "type", "type" : "nominal",
 								"axis" : {"title" : "Type de question"}
 							},
-						"y" : {"aggregate" : "sum", "field" : "perc", "type" : "quantitative",
-								"axis" : {"title" : "Pourcentage"}
+						"y" : {"field" : "perc", "type" : "quantitative",
+								"axis" : {"title" : "Pourcentage d'utilisation"}
 							}
 					}
 				}
@@ -279,6 +281,116 @@ cli
 			}
 		});
 	})	
+
+	// globalChart : création d'un histogramme sous le format .svg représentant la comparaison entre le profil d'un examen et le profil des examens de la banque nationale 
+	// bibliothèques utilisées :
+	// 	- FileSystem (fs) : lecture du fichier gift, du dossier des examens gift et exportation sous le format .svg
+	// 	- vega (vg) : création de l'histogramme, adaptation au format .svg
+	// 	- open version 8.4.2 (https://www.npmjs.com/package/open/v/8.4.2) : permet d'ouvrir le fichier .svg à la fin de la commande
+	.command('globalChart', 'Créé un fichier .svg permettant de visualiser la comparaison entre le profil de l\'examen choisi et le profil moyen des examens de la banque nationale')
+	.argument('<file>', 'Le fichier correspondant à l\'examen que l\'on veut comparer')
+	.argument('<directory>', 'Le dossier contenant les questions de la banque nationale')
+	.action(({args, options, logger}) => {
+
+		// Lecture du fichier examen
+		var data = fs.readFileSync(args.file, 'utf8', function (err,data){
+			if (err) {
+				return logger.warn(err);
+			}
+		})
+
+		// Création d'un nouveau parseur
+		var analyzer = new GiftParser();
+
+		analyzer.parse(data);
+
+
+		if (analyzer.errorCount === 0){
+			// Création de la liste qui va contenir toutes les questions
+			var questionList = analyzer.parsedQuestion.map(q => {
+				q["groupe"] = "examen choisi"; // les questions font partie de l'examen choisi
+				return q;
+			})
+		}else{
+			logger.info("Le fichier .gift contient une erreur.".red);
+		}
+
+		// Lecture du dossier contenant les questions de la banque nationale
+		var compteur = 0;
+		const directory = fs.readdirSync(args.directory); 
+		for (const openfile of directory) {
+			const fullPath = path.join(args.directory, openfile);
+			if (fs.lstatSync(fullPath).isFile()) {
+				try {
+				   	let data = fs.readFileSync(fullPath, 'utf8');
+	
+					var analyzer = new GiftParser();
+					analyzer.parse(data);
+					var nationalExam = analyzer.parsedQuestion.map(q => {
+						q["groupe"] = "profil moyen"; // les questions font partie de la banque nationale
+						return q;
+					})
+					// on ajoute les questions de la banque nationale à la liste contenant toutes les questions
+					nationalExam.forEach((question) => questionList.push(question));
+	
+				}
+			catch (err) {
+				logger.warn(`Erreur lors de la lecture de ${fullPath} :`, err);
+			  }
+			}
+		};
+
+		// Création du graphique : on extrait directement l'attribut "type" des objets question contenus dans la liste questionList
+		// On sépare les données selon leur groupe, puis on calcule le pourcentage des types de question par agrégation
+		var globalChart = {
+			//"width": 320,
+			//"height": 460,
+			"title": "Comparaison entre le profil de l'examen "+args.file+" et le profil moyen (banque nationale)",
+			"data" : {
+					"values" : questionList
+			},
+			"transform": [
+				{
+				  "joinaggregate": [{
+					"op": "count",
+					"as": "total"
+				  }],
+				  "groupby": ["groupe"]
+				},
+			  {
+				"calculate": "1/datum.total",
+				"as" : "Percent"
+			  }],
+			"mark" : "bar",
+			"encoding" : {
+				"x" : {"field" : "type", "type" : "nominal",
+						"axis" : {"title" : "Type de question"}
+					},
+				"y" : {"field" : "Percent", "type" : "quantitative",
+						"axis" : {"title" : "Pourcentage d'utilisation"}
+					},
+				"xOffset": {"field": "groupe"},
+				"color": {"field": "groupe"}
+			}
+		}
+
+		const myChart = vegalite.compile(globalChart).spec;
+				
+		// Création du fichier SVG
+		var runtime = vg.parse(myChart);
+		var view = new vg.View(runtime).renderer('svg').run();
+		var mySvg = view.toSVG();
+		mySvg.then(function(res){
+			fs.writeFileSync("./chart/globalChart.svg", res)
+			view.finalize();
+			//logger.info("%s", JSON.stringify(myChart, null, 2));
+			logger.info("Histogramme créé. \nVous pouvez le retrouver dans le dossier \"chart\" sous le nom globalChart.svg");
+		});
+
+		// Ouverture du fichier
+		open('./chart/globalChart.svg');
+
+	})
 
 	// readme
 	.command('readme', 'Display the README.md file')
