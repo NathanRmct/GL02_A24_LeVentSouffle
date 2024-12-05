@@ -11,6 +11,7 @@ const vCardsJS = require('vcards-js');
 const prompt = require('prompt-sync')();
 const open = require('open'); // version 8.4.2 pour pouvoir être utilisé en require : npm i open@8.4.2
 // const { forEach } = require('vega-lite/build/src/encoding.js');
+const readline = require('readline');
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -390,6 +391,118 @@ cli
 		// Ouverture du fichier
 		open('./chart/globalChart.svg');
 
+	})
+
+	//Simuler un examen
+	.command('modeExam', "Permet de simuler la passation d'un examen")
+	.argument('<file>', "Fichier de l'examen à simuler")
+	.option('-t, --timeLimit <time>', "Limite de temps en minutes", {
+    		validator: cli.NUMBER,
+    		default: null
+	})
+	.action(async ({ args, options, logger }) => {
+    		const filePath = args.file;
+    		const timeLimit = options.timeLimit ? options.timeLimit * 60000 : null; // ms
+
+    		// Vérifier que le fichier existe
+    		if (!fs.existsSync(filePath)) {
+        		return logger.error(`Le fichier ${filePath} n'existe pas.`);
+    		}
+
+    		// Charger le fichier d'examen
+    		let examData;
+    		try {
+        		const fileContent = fs.readFileSync(filePath, 'utf8');
+        		const parser = new GiftParser();
+        		examData = parser.parse(fileContent);
+    		} catch (err) {
+        		return logger.error(`Erreur lors de la lecture ou de l'analyse du fichier : ${err.message}`);
+    		}
+
+    		if (!examData.questions || examData.questions.length === 0) {
+        		return logger.error("Aucune question valide trouvée dans le fichier d'examen.");
+    		}
+
+    		// Afficher la consigne avant le début de l'examen
+    		const consigne = examData.questions[0].sentence[0].replace(/\{.*?\}/g, '...'); // Remplacer les accolades par "..."
+    		logger.info(`Consigne de l'examen :\n${consigne}\n`);
+
+    		// Début de la simulation d'examen
+    		logger.info(`Simulation de l'examen : ${filePath}`);
+    		const userAnswers = [];
+    		const startTime = Date.now();
+
+    		// Interface readline pour capturer les réponses utilisateur
+    		const rl = readline.createInterface({
+        		input: process.stdin,
+        		output: process.stdout,
+    		});
+
+    		// Fonction pour poser les questions de manière synchrone
+    		for (let index = 1; index < examData.questions.length; index++) { // Commence à partir de la première question (1.1)
+        		if (timeLimit && Date.now() - startTime > timeLimit) {
+            		logger.warn("Temps limite dépassé. Fin de la simulation.");
+            		break;
+        		}
+
+        		const question = examData.questions[index];
+
+        		// Extraire et afficher le texte de la question
+        		if (question.sentence && question.sentence.length > 0) {
+				let questionText = question.sentence[0];
+				
+				// Remplacer les réponses proposées entre {~enough~=so~too~very} par "enough, so, too, very"
+            			questionText = questionText.replace(/{~([^}]*)~}/g, (match, options) => {
+					// Remplacer '=' par '~' dans les options
+					const answers = options
+						.split('~') // Séparer par '~'
+                    				.map(opt => opt.replace('=', '~').trim()) // Remplacer '=' par '~' et enlever les espaces inutiles
+                    				.join(' ~ '); // Joindre les options avec ' ~ '
+					return `${answers}`; // Retourner les options
+				});
+				
+				// Pose une question et capture la réponse
+				await new Promise((resolve) => {
+					rl.question(`Q${index}: ${questionText}\nVotre réponse : `, (userAnswer) => {
+						userAnswers.push({ question, userAnswer });
+						resolve(); 
+					});
+				})
+			} else {
+				// Si question.sentence est vide ou undefined, afficher une question générique
+				await new Promise((resolve) => {
+					rl.question(`Q${index}: Question ${index + 1}\nVotre réponse : `, (userAnswer) => {
+						userAnswers.push({ question, userAnswer });
+                    				resolve(); 
+					});
+				});
+        		}
+    		}
+
+    		rl.close();
+
+    		// Calculer les résultats avec la bonne réponse extraite
+    		const bilan = userAnswers.map(({ question, userAnswer }) => {
+        		// Extraction de la bonne réponse (la première option correcte entre = et ~ ou = et })
+        		const correctAnswer = (question.sentence[0].match(/=([^~}]+)/) || [])[1] || "Non définie"; // Récupère la première réponse correcte entre = et ~ ou = et }
+
+        		return {
+            		"Réponse correcte": correctAnswer, // Affiche la réponse correcte
+            		"Votre réponse": userAnswer, // Affiche la réponse donnée par l'utilisateur
+        		};
+    		});
+
+    		// Générer et afficher le rapport final
+    		const rapport = {
+        		examen: filePath,
+        		date: new Date(),
+        		bilan,
+        		tempsUtilise: `${(Date.now() - startTime) / 1000} secondes`,
+        		tempsLimite: timeLimit ? `${timeLimit / 60000} minutes` : "Non défini",
+    		};
+
+    		logger.info("Rapport final :");
+    		console.log(JSON.stringify(rapport, null, 2));
 	})
 
 	// readme
