@@ -10,9 +10,8 @@ git clone
 ```
 
 Ensuite, il vous faudra installer les dépendances suivantes : 
-├── @caporal/core@2.0.7
-
-├── colors@1.4.0
+@caporal/core@2.0.7
+colors@1.4.0
 
 ├── fs@0.0.1-security
 
