@@ -100,24 +100,6 @@ cli
 			} else {
 				logger.info(`Le nombre de questions (${numberOfQuestions}) est dans la plage acceptable.`);
 			}
-
-			/*
-			analyzer.parsedQuestion.forEach((question, index) => {
-				logger.info(
-					`\nQuestion ${index + 1}:\n` +
-					`\tTitre: ${question.title || 'Non spécifié'}\n` +
-					`\tPhrase: ${question.sentence || 'Non spécifié'}\n` +
-					`\tType: ${question.type || 'N/A'}\n` +
-					`\tBonnes réponses: ${question.correctAnswers?.join(', ') || 'Aucune'}\n` +
-					`\tOptions: ${question.answers?.join(', ') || 'Aucune'}\n` +
-					`\tCollocations: ${question.collocations?.map(c => `${c.key} -> ${c.value}`).join(', ') || 'Aucune'
-					}\n` +
-					`\tCommentaire: ${question.commentaire || 'Aucun'}\n`
-				);
-			});
-			*/
-
-			// Log le statut final
 			if (qualiteExamen) {
 				logger.info("L'examen respecte les critères de qualité.");
 			}

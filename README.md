@@ -10,8 +10,10 @@ git clone
 ```
 
 Ensuite, il vous faudra installer les dépendances suivantes : 
-@caporal/core@2.0.7
-colors@1.4.0
+
+├── @caporal/core@2.0.7
+
+├── colors@1.4.0
 
 ├── fs@0.0.1-security
 
@@ -60,3 +62,26 @@ npm install
     ```bash
     node CaporalCli qualiteExamen TEST.gift
     ```
+- **créer gift** : permet de créet un fichier gift en sélecctionnant des questions à ajouter
+    ```bash
+    node CaporalCli createGift <file> <name>
+    ```
+    Exemple d'utilisation
+    ```bash
+    node CaporalCli createGift SujetB_data/U7-p77-It is,there is.gift "nouveau fichier gift"
+- **createVcard** : permet de créer la Vcard d'un enseignant.
+    ```bash
+    node CaporalCLi <file>
+    ```
+    Exemple d'utilisation : 
+    ```bash
+    node CaporalCLi createVcard
+    ````
+- **examChat** : permet de dresser une graphique de l'exmaen
+    ```bash
+    node CaporalCli examChat <file>
+    ```
+    Exemple d'utilisation
+    ```bash
+    node CaporalCli examChat TEST.gift
+    ````
