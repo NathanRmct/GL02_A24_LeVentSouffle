@@ -161,16 +161,10 @@ GiftParser.prototype.question = function(input) {
     if (matched = input[0].match(/::\s*(.*?)\s*::\s*(.*)?/)) {
         const args = this.body(input); // Récupère les données parsées
 
-        // Crée l'objet question avant l'extraction des réponses et des commentaires
+        // Crée l'objet question 
         var p = new question(args.tit, args.sent, "MC", [], []);
-
-        // Passe l'objet `p` pour mettre à jour directement son champ `commentaire`
         args.cor = this.extractCorrectAnswers(args.sent, p);
-
-        // Assignez les réponses correctes à l'objet question
         p.setCorrectAnswers(args.cor);
-
-        // Ajoute la question au tableau des questions parsées
         this.parsedQuestion.push(p);
 
         if (input.length > 0) {
@@ -183,19 +177,14 @@ GiftParser.prototype.question = function(input) {
     }
 };
 
-// Récupère les différentes variables :
 GiftParser.prototype.body = function(input) {
     const tit = this.title(input);
     const sent = this.sentence(input);
-
-    // Retourne uniquement les données nécessaires
     return {
         tit: tit,
         sent: sent
     };
 };
-
-
 
 // titre = “::”  TEXT  “::”
 GiftParser.prototype.title = function(input){
@@ -291,34 +280,31 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
     const regexComment = /#([^~}]*)/; // Extraction des commentaires
 	const regexOptionsDuo = /(~=|~|=)([^~}]*)(?=[~}])/g;
 	const regexMixed = /(~[^=]*=)([^~}]*)(?=[~}])/g;
-	const regexCollocations = /=(.*?)\s*->\s*(.*?)(?=\s*=|$)/g; // Extraction des collocations
-	const regexFieldBigGap = /{ =(.*?)(~|#|})/g; 
-	const regexNombre =  /{#(.*?)(~|#|})/g;
-	const regexBoolean = /{( TRUE| FALSE|TRUE|FALSE)(#.*?)?}/g;
-	
+	const regexAssociation = /=(.*?)\s*->\s*(.*?)(?=\s*=|$)/g; // Extraction des questions d'association
+	const regexFieldBigGap = /{ =(.*?)(~|#|})/g; // Les field gap mais avec un espace entre l'acolade et le egal
+	const regexNombre =  /{#(.*?)(~|#|})/g; // pur les questions avec des nombres en réponses
+	const regexBoolean = /{( TRUE| FALSE|TRUE|FALSE)(#.*?)?}/g; // pour les question VRAI/FAUX
 
     let correctAnswers = [];
     let optionQcm = [];
     let match;
-	let collocations = [];
+	let associations = [];
 	let comments = [];
 
-	
-    // Vérifiez si la question est de type MC ou SA
+    // Vérification types de réponses
     const isMultipleChoice = sentence.includes(":MC:");
     const isShortAnswer = sentence.includes(":SA:");
-	const isCollocations = regexCollocations.test(sentence);
+	const isAssociation = regexAssociation.test(sentence);
 	const isBoolean = regexBoolean.test(sentence);
-	console.log(regexBoolean.exec(sentence));
 
-    if (isCollocations) {
-        console.log("Processing Collocations...");
-        while ((match = regexCollocations.exec(sentence)) !== null) {
-            collocations.push({ key: match[1].trim(), value: match[2].trim() });
+	// Question association
+    if (isAssociation) {
+        while ((match = regexAssociation.exec(sentence)) !== null) {
+            associations.push({ key: match[1].trim(), value: match[2].trim() });
             correctAnswers.push(match[1].trim() + " -> " + match[2].trim());
         }
-        question.type = "Collocations";
-		question.collocations = collocations;
+        question.type = "associations";
+		question.associations = associations;
     } else if (isMultipleChoice) {
         // Extraction des réponses multiples (MC)
         while ((match = regexMC.exec(sentence)) !== null) {
@@ -334,10 +320,8 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
             );
         }
     } else if (isBoolean) {
+		// Question vrai faux
 		while ((match = regexBoolean.exec(sentence)) !== null) {
-			console.log("Match trouvé pour BOOLEAN :", match);
-	
-			// Ajoute TRUE ou FALSE dans les réponses correctes
 			if (match[1]) {
 				correctAnswers.push(match[1].trim());
 			}
@@ -346,14 +330,13 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
 			if (match[2]) {
 				const extractedComments = match[2]
 					.split('#')
-					.slice(1) // Ignore le premier élément vide avant le premier #
-					.map(c => c.trim()); // Supprime les espaces autour des commentaires
-				question.commentaire = extractedComments.join(" | "); // Combine les commentaires
+					.slice(1) 
+					.map(c => c.trim()); 
+				question.commentaire = extractedComments.join(" | "); 
 			}
 		}
-		question.type = "Boolean"; // Définit le type de question
+		question.type = "Boolean"; 
 	} else {
-        // Extraction des réponses générales
         while ((match = regexOthers.exec(sentence)) !== null) {
             correctAnswers = correctAnswers.concat(
                 match[1].split('=').map(answer => answer.trim())
@@ -362,12 +345,12 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
 
 		while ((match = regexFieldBigGap.exec(sentence)) !== null) {
 			const answersWithComments = match[1]
-				.split('=') // Divise les réponses par `=`
+				.split('=') 
 				.map(answer => {
-					const [text, comment] = answer.split('#'); // Sépare la réponse du commentaire (si présent)
+					const [text, comment] = answer.split('#');
 					return {
-						answer: text.trim(), // Texte de la réponse
-						comment: comment ? comment.trim() : null // Commentaire ou null
+						answer: text.trim(), 
+						comment: comment ? comment.trim() : null 
 					};
 				});
 		
@@ -378,14 +361,13 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
 		
 			// Ajoute les commentaires associés
 			const extractedComments = answersWithComments
-				.filter(item => item.comment) // Filtre uniquement les réponses avec commentaires
-				.map(item => item.comment); // Récupère les commentaires
+				.filter(item => item.comment) 
+				.map(item => item.comment); 
 		
 			if (extractedComments.length > 0) {
 				comments = comments.concat(extractedComments); // Ajoute les commentaires au tableau global
 			}
 		}
-		
 
 		while ((match = regexNombre.exec(sentence)) !== null) {
             correctAnswers = correctAnswers.concat(
@@ -404,7 +386,6 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
             optionQcm.push(answer);
         }
 
-        // Extraction des réponses duo pour les questions sans type explicite
         while ((match = regexOptionsDuo.exec(sentence)) !== null) {
             const prefix = match[1];
             const answer = match[2].trim(); 
@@ -445,11 +426,6 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
 		question.answers = [];
 		question.type = "gapField";
 	}
-
-    console.log("Type de question:", isMultipleChoice ? "MC" : isShortAnswer ? "SA" : "Autre");
-    console.log("Correct Answers:", correctAnswers);
-    console.log("Options:", optionQcm);
-    console.log("Commentaire:", question.commentaire);
 
     return correctAnswers;
 };
