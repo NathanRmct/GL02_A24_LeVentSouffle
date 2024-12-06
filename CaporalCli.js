@@ -194,7 +194,7 @@ cli
 			// pour chaque question, on recopie le titre et la variable sentence
 			questionnaireSearched.questions.forEach(q => {
 				giftContent += `::${q.title}:: \n`;
-				q.sentence.forEach(sentence => giftContent += `${sentence} \n`)
+				giftContent += `${q.sentence} \n`;
 				giftContent += ' \n';
 			});
 			fs.writeFileSync(`${args.name}.gift`, giftContent, "utf8");
