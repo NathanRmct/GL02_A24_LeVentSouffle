@@ -460,212 +460,90 @@ cli
 		default: null
 	})
 	.action(async ({ args, options, logger }) => {
-		/*
+		const rl = readline.createInterface({
+			input: process.stdin,
+			output: process.stdout,
+		});
+
 		try {
-			if (!fs.existsSync(args.file) || !fs.lstatSync(args.file).isFile()) {
-				return logger.warn('Le chemin spécifié n\'est pas un fichier valide.');
-			}
-			const data = await fs.promises.readFile(args.file, 'utf8');
-
-			// parser
-			const analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-			analyzer.parse(data);
-
-			const questionnaire = new Questionnaire(analyzer.parsedQuestion);
-
-			// Vérifie les doublons
-			const originalSize = questionnaire.size();
-			const questionsWithoutDuplicates = questionnaire.doublon();
-			const newSize = questionsWithoutDuplicates.length;
-
-			if (originalSize !== newSize) {
-				logger.warn(
-					`Doublons détectés : ${originalSize - newSize} questions supprimées.`
-				);
-			} else {
-				logger.info('Aucun doublon détecté.');
-			}
-
-			// Vérifie le nombre de questions
-			const numberOfQuestions = analyzer.parsedQuestion.length - 1; // enlever la consigne
-			let qualiteExamen = true;
-
-			if (numberOfQuestions < 14 || numberOfQuestions > 21) {
-				qualiteExamen = false;
-				if (numberOfQuestions < 14) {
-					logger.warn(`Nombre de questions insuffisant (${numberOfQuestions}), veuillez en rajouter.`);
-				} else {
-					logger.warn(`Nombre de questions trop élevé (${numberOfQuestions}), veuillez en supprimer.`);
-				}
-			} else {
-				logger.info(`Le nombre de questions (${numberOfQuestions}) est dans la plage acceptable.`);
-			}
-
-			/*
-			analyzer.parsedQuestion.forEach((question, index) => {
-				logger.info(
-					`\nQuestion ${index + 1}:\n` +
-					`\tTitre: ${question.title || 'Non spécifié'}\n` +
-					`\tPhrase: ${question.sentence || 'Non spécifié'}\n` +
-					`\tType: ${question.type || 'N/A'}\n` +
-					`\tBonnes réponses: ${question.correctAnswers?.join(', ') || 'Aucune'}\n` +
-					`\tOptions: ${question.answers?.join(', ') || 'Aucune'}\n` +
-					`\tCollocations: ${question.collocations?.map(c => `${c.key} -> ${c.value}`).join(', ') || 'Aucune'
-					}\n` +
-					`\tCommentaire: ${question.commentaire || 'Aucun'}\n`
-				);
-			});
-			
-
-			// Log le statut final
-			if (qualiteExamen) {
-				logger.info("L'examen respecte les critères de qualité.");
-			} 
-		} catch (error) {
-			logger.error('Une erreur est survenue :', error.message);
-		}
-		*/
-		// -----------------------------------------------------------------------------------------------------------------
-		try {
-			const timeLimit = options.timeLimit ? options.timeLimit * 60000 : 60000; // ms
+			const timeLimit = Number.isFinite(options.timeLimit) ? options.timeLimit * 60000 : 60000;
 
 			if (!fs.existsSync(args.file) || !fs.lstatSync(args.file).isFile()) {
 				return logger.warn('Le chemin spécifié n\'est pas un fichier valide.');
 			}
+
 			const data = await fs.promises.readFile(args.file, 'utf8');
 
-			// parser
-			const analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+			const analyzer = new GiftParser(options.showTokenize || false, options.showSymbols || false);
 			analyzer.parse(data);
 
-			const questionnaire = new Questionnaire(analyzer.parsedQuestion);
-
-			analyzer.parsedQuestion.forEach((question, index) => {
-				logger.info(
-					`\nQuestion ${index + 1}:\n` +
-					`\tTitre: ${question.title || 'Non spécifié'}\n` +
-					`\tPhrase: ${question.sentence || 'Non spécifié'}\n` +
-					`\tType: ${question.type || 'N/A'}\n` +
-					`\tBonnes réponses: ${question.correctAnswers?.join(', ') || 'Aucune'}\n` +
-					`\tOptions: ${question.answers?.join(', ') || 'Aucune'}\n` +
-					`\tCollocations: ${question.collocations?.map(c => `${c.key} -> ${c.value}`).join(', ') || 'Aucune'
-					}\n` +
-					`\tCommentaire: ${question.commentaire || 'Aucun'}\n`
-				);
-			});
-
-			/*
-			// Charger le fichier d'examen
-			let examData;
-			try {
-				const fileContent = fs.readFileSync(filePath, 'utf8');
-				const parser = new GiftParser();
-				examData = parser.parse(fileContent);
-			} catch (err) {
-				return logger.error(`Erreur lors de la lecture ou de l'analyse du fichier : ${err.message}`);
-			}
-
-			if (!examData.questions || examData.questions.length === 0) {
-				return logger.error("Aucune question valide trouvée dans le fichier d'examen.");
-			}
-
-			// Afficher la consigne avant le début de l'examen
-			const consigne = examData.questions[0].sentence[0].replace(/\{.*?\}/g, '...'); // Remplacer les accolades par "..."
-			logger.info(`Consigne de l'examen :\n${consigne}\n`);
-
-			// Début de la simulation d'examen
-			logger.info(`Simulation de l'examen : ${filePath}`);
 			const userAnswers = [];
 			const startTime = Date.now();
 
-			// Interface readline pour capturer les réponses utilisateur
-			const rl = readline.createInterface({
-				input: process.stdin,
-				output: process.stdout,
-			});
-
-			// Fonction pour poser les questions de manière synchrone
-			for (let index = 1; index < examData.questions.length; index++) { // Commence à partir de la première question (1.1)
-				if (timeLimit && Date.now() - startTime > timeLimit) {
-					logger.warn("Temps limite dépassé. Fin de la simulation.");
-					break;
-				}
-
-				const question = examData.questions[index];
-
-				// Extraire et afficher le texte de la question
-				if (question.sentence && question.sentence.length > 0) {
-					let questionText = question.sentence[0];
-
-					// Remplacer les réponses proposées entre {~enough~=so~too~very} par "enough, so, too, very"
-					questionText = questionText.replace(/{~([^}]*)~}/g, (match, options) => {
-						// Remplacer '=' par '~' dans les options
-						const answers = options
-							.split('~') // Séparer par '~'
-							.map(opt => opt.replace('=', '~').trim()) // Remplacer '=' par '~' et enlever les espaces inutiles
-							.join(' ~ '); // Joindre les options avec ' ~ '
-						return `${answers}`; // Retourner les options
-					});
-
-					// Pose une question et capture la réponse
-					await new Promise((resolve) => {
-						rl.question(`Q${index}: ${questionText}\nVotre réponse : `, (userAnswer) => {
-							userAnswers.push({ question, userAnswer });
-							resolve();
-						});
-					})
+			for (const [index, question] of analyzer.parsedQuestion.entries()) {
+				if (question.type === "consignes") {
+					logger.info(
+						`${question.title || 'Non spécifié'} : ${question.sentence || 'Non spécifié'}\n`
+					);
 				} else {
-					// Si question.sentence est vide ou undefined, afficher une question générique
+					logger.info(
+						`Question ${index}:\n` +
+						`\tType : ${question.type || 'Non spécifié'}\n` +
+						`\t${question.title || 'Non spécifié'} : ${question.sentence.replace(/\{.*?\}/g, "_____") || 'Non spécifié'}\n` +
+						`\tOptions :\n\t\t${(question.answers || []).map(option => `• ${option}`).join("\n\t\t") || 'Aucune option spécifiée'}`
+					);
+
 					await new Promise((resolve) => {
-						rl.question(`Q${index}: Question ${index + 1}\nVotre réponse : `, (userAnswer) => {
+						rl.question(`Votre réponse : `, (userAnswer) => {
 							userAnswers.push({ question, userAnswer });
+
+							// Vérification de la réponse
+							const correctAnswers = Array.isArray(question.correctAnswers)
+								? question.correctAnswers
+								: [question.correctAnswers];
+							const isCorrect = correctAnswers.some(answer => answer.trim().toLowerCase() === userAnswer.trim().toLowerCase());
+
+							if (isCorrect) {
+								logger.info("✅ Correct !");
+							} else {
+								logger.info(`❌ Incorrect. La bonne réponse était : ${correctAnswers.join(", ")}`);
+							}
 							resolve();
 						});
 					});
 				}
 			}
 
-			rl.close();
+			// Calcul des résultats globaux
+			const correctCount = userAnswers.reduce((count, { question, userAnswer }) => {
+				const correctAnswers = Array.isArray(question.correctAnswers)
+					? question.correctAnswers
+					: [question.correctAnswers];
+				return correctAnswers.some(answer => answer.trim().toLowerCase() === userAnswer.trim().toLowerCase())
+					? count + 1
+					: count;
+			}, 0);
 
-			// Calculer les résultats avec la bonne réponse extraite
-			const bilan = userAnswers.map(({ question, userAnswer }) => {
-				// Extraction de la bonne réponse (la première option correcte entre = et ~ ou = et })
-				const correctAnswer = (question.sentence[0].match(/=([^~}]+)/) || [])[1] || "Non définie"; // Récupère la première réponse correcte entre = et ~ ou = et }
+			const totalQuestions = userAnswers.length;
+			const score = Math.round((correctCount / totalQuestions) * 100);
 
-				return {
-					"Réponse correcte": correctAnswer, // Affiche la réponse correcte
-					"Votre réponse": userAnswer, // Affiche la réponse donnée par l'utilisateur
-				};
-			});
-
-			// Générer et afficher le rapport final
 			const rapport = {
-				examen: filePath,
+				examen: args.file,
 				date: new Date(),
-				bilan,
+				score: `${score}%`,
+				bonnesReponses: correctCount,
+				totalQuestions,
 				tempsUtilise: `${(Date.now() - startTime) / 1000} secondes`,
 				tempsLimite: timeLimit ? `${timeLimit / 60000} minutes` : "Non défini",
 			};
 
-			logger.info("Rapport final :");
+			logger.info("\n=== Rapport final ===");
 			console.log(JSON.stringify(rapport, null, 2));
-		*/
 		} catch (e) {
-			console.log("Erreur dans le mode examen : " + e);
+			logger.error("Erreur dans le mode examen : ", e);
+		} finally {
+			rl.close();
 		}
-	})
-
-	// readme
-	.command('readme', 'Display the README.md file')
-	.action(({ args, options, logger }) => {
-		fs.readFile("./README.md", 'utf8', function (err, data) {
-			if (err) {
-				return logger.warn(err);
-			}
-
-			logger.info(data);
-		});
-
 	})
 
 cli.run(process.argv.slice(2));
