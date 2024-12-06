@@ -485,7 +485,7 @@ cli
 					logger.info(
 						`${question.title || 'Non spécifié'} : ${question.sentence || 'Non spécifié'}\n`
 					);
-				} else {
+				} else if (question.type === "multipleChoice") {
 					logger.info(
 						`Question ${index}:\n` +
 						`\tType : ${question.type || 'Non spécifié'}\n` +
@@ -511,6 +511,42 @@ cli
 							resolve();
 						});
 					});
+				} else if(question.type === "multipleChoiceMC") {
+					logger.info(
+						`Question ${index}:\n` +
+						`\tType : ${question.type || 'Non spécifié'}\n` +
+						`\t${question.title || 'Non spécifié'} : ${question.sentence.replace(/\{.*?\}/g, "_____") || 'Non spécifié'}\n` +
+						`\tOptions :\n\t\t${(question.answers || [])
+							.map((block, blockIndex) => `Bloc ${blockIndex + 1}:\n\t\t\t${block.map(option => `• ${option}`).join("\n\t\t\t")}`)
+							.join("\n\t\t") || 'Aucune option spécifiée'}`
+					);
+					
+					const userResponsesForBlocks = []; // Stocker les réponses utilisateur pour chaque bloc
+					
+					for (let blockIndex = 0; blockIndex < question.answers.length; blockIndex++) {
+						await new Promise((resolve) => {
+							rl.question(`Votre réponse pour le Bloc ${blockIndex + 1} : `, (userAnswer) => {
+								userResponsesForBlocks.push(userAnswer.trim()); // Stocker la réponse pour ce bloc
+					
+								// Vérification de la réponse pour ce bloc
+								const correctAnswersForBlock = question.answers[blockIndex].filter(option =>
+									question.correctAnswers.includes(option)
+								);
+								const isCorrect = correctAnswersForBlock.some(correct =>
+									correct.trim().toLowerCase() === userAnswer.trim().toLowerCase()
+								);
+					
+								if (isCorrect) {
+									logger.info(`✅ Correct pour le Bloc ${blockIndex + 1} !`);
+								} else {
+									logger.info(
+										`❌ Incorrect pour le Bloc ${blockIndex + 1}. La bonne réponse était : ${correctAnswersForBlock.join(", ")}`
+									);
+								}
+								resolve();
+							});
+						});
+					}								
 				}
 			}
 
