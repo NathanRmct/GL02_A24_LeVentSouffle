@@ -273,6 +273,7 @@ function tableauxEgaux(tab1, tab2) {
 
 
 GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
+	const regexConsignes = /^[^{]*$/; // pas d'accolades
     const regexMC = /{[^:]*:MC:~?=(.*?)(~|})/g; // Questions à choix multiple (MC)
     const regexSA = /{[^:]*:SA:=(.*?)(~|})/g; // Questions à réponse courte (SA)
     const regexOthers = /{=(.*?)(~|#|})/g; // Questions générales sans type explicite
@@ -290,6 +291,14 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
     let match;
 	let associations = [];
 	let comments = [];
+
+	if (regexConsignes.test(sentence)) {
+        question.type = "consignes";
+        question.correctAnswers = [];
+        question.answers = [];
+        question.commentaire = null;
+        return [];
+    }
 
     // Vérification types de réponses
     const isMultipleChoice = sentence.includes(":MC:");
@@ -433,6 +442,11 @@ GiftParser.prototype.extractCorrectAnswers = function(sentence, question) {
 		question.answers = [];
 		question.type = "fillGap";
 	}
+
+	if (regexConsignes.test(sentence)) {
+        question.type = "consignes";
+    }
+
 
     return correctAnswers;
 };
