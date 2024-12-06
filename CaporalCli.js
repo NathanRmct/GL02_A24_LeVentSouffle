@@ -473,19 +473,20 @@ cli
 			}
 
 			const data = await fs.promises.readFile(args.file, 'utf8');
-
 			const analyzer = new GiftParser(options.showTokenize || false, options.showSymbols || false);
 			analyzer.parse(data);
 
 			const userAnswers = [];
 			const startTime = Date.now();
 
-			for (const [index, question] of analyzer.parsedQuestion.entries()) {
-				if (question.type === "consignes") {
+			// Gestion des types de questions via une fonction par type
+			const questionHandlers = {
+				consignes: (question) => {
 					logger.info(
 						`${question.title || 'Non spécifié'} : ${question.sentence || 'Non spécifié'}\n`
 					);
-				} else if (question.type === "multipleChoice") {
+				},
+				multipleChoice: async (question, index) => {
 					logger.info(
 						`Question ${index}:\n` +
 						`\tType : ${question.type || 'Non spécifié'}\n` +
@@ -511,7 +512,8 @@ cli
 							resolve();
 						});
 					});
-				} else if(question.type === "multipleChoiceMC") {
+				},
+				multipleChoiceMC: async (question, index) => {
 					logger.info(
 						`Question ${index}:\n` +
 						`\tType : ${question.type || 'Non spécifié'}\n` +
@@ -520,14 +522,14 @@ cli
 							.map((block, blockIndex) => `Bloc ${blockIndex + 1}:\n\t\t\t${block.map(option => `• ${option}`).join("\n\t\t\t")}`)
 							.join("\n\t\t") || 'Aucune option spécifiée'}`
 					);
-					
+
 					const userResponsesForBlocks = []; // Stocker les réponses utilisateur pour chaque bloc
-					
+
 					for (let blockIndex = 0; blockIndex < question.answers.length; blockIndex++) {
 						await new Promise((resolve) => {
 							rl.question(`Votre réponse pour le Bloc ${blockIndex + 1} : `, (userAnswer) => {
 								userResponsesForBlocks.push(userAnswer.trim()); // Stocker la réponse pour ce bloc
-					
+
 								// Vérification de la réponse pour ce bloc
 								const correctAnswersForBlock = question.answers[blockIndex].filter(option =>
 									question.correctAnswers.includes(option)
@@ -535,7 +537,7 @@ cli
 								const isCorrect = correctAnswersForBlock.some(correct =>
 									correct.trim().toLowerCase() === userAnswer.trim().toLowerCase()
 								);
-					
+
 								if (isCorrect) {
 									logger.info(`✅ Correct pour le Bloc ${blockIndex + 1} !`);
 								} else {
@@ -546,7 +548,80 @@ cli
 								resolve();
 							});
 						});
-					}								
+					}
+				},
+				shortAnswer: async (question, index) => {
+					const gaps = question.sentence.match(/\{.*?\}/g) || []; // Trouver tous les trous
+					const answersByGap = question.correctAnswers || []; // Liste des bonnes réponses
+				
+					logger.info(
+						`Question ${index}:\n` +
+						`\tType : ${question.type || 'Non spécifié'}\n` +
+						`\t${question.title || 'Non spécifié'} : ${question.sentence.replace(/\{.*?\}/g, "_____") || 'Non spécifié'}\n`
+					);
+				
+					for (let gapIndex = 0; gapIndex < gaps.length; gapIndex++) {
+						await new Promise((resolve) => {
+							rl.question(`Votre réponse pour le trou ${gapIndex + 1} : `, (userAnswer) => {
+								// Stocker la réponse utilisateur
+								userAnswers.push({ question, userAnswer, gapIndex });
+				
+								// Vérification de la réponse pour ce trou
+								const correctAnswersForGap = Array.isArray(answersByGap[gapIndex])
+									? answersByGap[gapIndex]
+									: [answersByGap[gapIndex]];
+				
+								const isCorrect = correctAnswersForGap.some(answer =>
+									answer.trim().toLowerCase() === userAnswer.trim().toLowerCase()
+								);
+				
+								if (isCorrect) {
+									logger.info(`✅ Correct pour le trou ${gapIndex + 1} !`);
+								} else {
+									logger.info(
+										`❌ Incorrect pour le trou ${gapIndex + 1}. La bonne réponse était : ${correctAnswersForGap.join(", ")}`
+									);
+								}
+								resolve();
+							});
+						});
+					}
+				},
+				duo: async (question, index) => {
+					logger.info(
+						`Question ${index}:\n` +
+						`\tType : ${question.type || 'Non spécifié'}\n` +
+						`\t${question.title || 'Non spécifié'} : ${question.sentence.replace(/\{.*?\}/g, "_____") || 'Non spécifié'}\n`
+					);
+
+					await new Promise((resolve) => {
+						rl.question(`Votre réponse : `, (userAnswer) => {
+							userAnswers.push({ question, userAnswer });
+
+							// Vérification de la réponse
+							const correctAnswers = Array.isArray(question.correctAnswers)
+								? question.correctAnswers
+								: [question.correctAnswers];
+							const isCorrect = correctAnswers.some(answer => answer.trim().toLowerCase() === userAnswer.trim().toLowerCase());
+
+							if (isCorrect) {
+								logger.info("✅ Correct !");
+							} else {
+								logger.info(`❌ Incorrect. La bonne réponse était : ${correctAnswers.join(", ")}`);
+							}
+							resolve();
+						});
+					});
+				}			
+			};
+
+			// Boucle principale pour traiter toutes les questions
+			for (const [index, question] of analyzer.parsedQuestion.entries()) {
+				const handler = questionHandlers[question.type];
+				if (handler) {
+					await handler(question, index);
+				} else {
+					logger.warn(`Type de question inconnu : ${question.type}`);
 				}
 			}
 
