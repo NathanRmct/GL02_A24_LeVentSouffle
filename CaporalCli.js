@@ -60,20 +60,69 @@ cli
 	// qualiteExamen : vérifier la qualité d'un examen
 	.command('qualiteExamen', 'Vérifie la qualité d\'un examen')
 	.argument('<file>', 'The file to check with Gift parser')
-	.action(({ args, options, logger }) => {
-		if (fs.lstatSync(args.file).isFile()) {
-			fs.readFile(args.file, 'utf8', function (err, data) {
-				if (err) {
-					return logger.warn(err);
-				}
-				var analyzer = new GiftParser(options.showTokenize, options.showSymbols);
-				analyzer.parse(data);
+	.action(async ({ args, options, logger }) => {
+		try {
+			if (!fs.existsSync(args.file) || !fs.lstatSync(args.file).isFile()) {
+				return logger.warn('Le chemin spécifié n\'est pas un fichier valide.');
+			}
+			const data = await fs.promises.readFile(args.file, 'utf8');
 
-				// Affiche uniquement les titres des questions
-				analyzer.parsedQuestion.forEach(question => {
-					logger.info(`Titre: ${question.title}\n\tSentence: ${question.sentence.join(' ')}\n\tBonnes réponses: ${question.correctAnswers.join(', ')}`);
-				});
+			// parser
+			const analyzer = new GiftParser(options.showTokenize, options.showSymbols);
+			analyzer.parse(data);
+
+			const questionnaire = new Questionnaire(analyzer.parsedQuestion);
+
+            // Vérifie les doublons
+            const originalSize = questionnaire.size();
+            const questionsWithoutDuplicates = questionnaire.doublon();
+            const newSize = questionsWithoutDuplicates.length;
+
+            if (originalSize !== newSize) {
+                logger.warn(
+                    `Doublons détectés : ${originalSize - newSize} questions supprimées.`
+                );
+            } else {
+                logger.info('Aucun doublon détecté.');
+            }
+
+			// Vérifie le nombre de questions
+			const numberOfQuestions = analyzer.parsedQuestion.length - 1; // enlever la consigne
+			let qualiteExamen = true;
+
+			if (numberOfQuestions < 14 || numberOfQuestions > 21) {
+				qualiteExamen = false;
+				if (numberOfQuestions < 14) {
+					logger.warn(`Nombre de questions insuffisant (${numberOfQuestions}), veuillez en rajouter.`);
+				} else {
+					logger.warn(`Nombre de questions trop élevé (${numberOfQuestions}), veuillez en supprimer.`);
+				}
+			} else {
+				logger.info(`Le nombre de questions (${numberOfQuestions}) est dans la plage acceptable.`);
+			}
+
+			/*
+			analyzer.parsedQuestion.forEach((question, index) => {
+				logger.info(
+					`\nQuestion ${index + 1}:\n` +
+					`\tTitre: ${question.title || 'Non spécifié'}\n` +
+					`\tPhrase: ${question.sentence || 'Non spécifié'}\n` +
+					`\tType: ${question.type || 'N/A'}\n` +
+					`\tBonnes réponses: ${question.correctAnswers?.join(', ') || 'Aucune'}\n` +
+					`\tOptions: ${question.answers?.join(', ') || 'Aucune'}\n` +
+					`\tCollocations: ${question.collocations?.map(c => `${c.key} -> ${c.value}`).join(', ') || 'Aucune'
+					}\n` +
+					`\tCommentaire: ${question.commentaire || 'Aucun'}\n`
+				);
 			});
+			*/
+
+			// Log le statut final
+			if (qualiteExamen) {
+				logger.info("L'examen respecte les critères de qualité.");
+			} 
+		} catch (error) {
+			logger.error('Une erreur est survenue :', error.message);
 		}
 	})
 
