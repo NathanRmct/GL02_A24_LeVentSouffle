@@ -612,7 +612,85 @@ cli
 							resolve();
 						});
 					});
-				}			
+				},
+				bigFillGap: async (question, index) => {
+					logger.info(
+						`Question ${index}:\n` +
+						`\tType : ${question.type || 'Non spécifié'}\n` +
+						`\t${question.title || 'Non spécifié'} : ${question.sentence.replace(/\{.*?\}/g, "_____") || 'Non spécifié'}\n`
+					);
+
+					await new Promise((resolve) => {
+						rl.question(`Votre réponse : `, (userAnswer) => {
+							userAnswers.push({ question, userAnswer });
+
+							// Vérification de la réponse
+							const correctAnswers = Array.isArray(question.correctAnswers)
+								? question.correctAnswers
+								: [question.correctAnswers];
+							const isCorrect = correctAnswers.some(answer => answer.trim().toLowerCase() === userAnswer.trim().toLowerCase());
+
+							if (isCorrect) {
+								logger.info("✅ Correct !");
+							} else {
+								logger.info(`❌ Incorrect. La bonne réponse était : ${correctAnswers.join(", ")}`);
+							}
+							resolve();
+						});
+					});
+				},
+				fillGap: async (question, index) => {
+					logger.info(
+						`Question ${index}:\n` +
+						`\tType : ${question.type || 'Non spécifié'}\n` +
+						`\t${question.title || 'Non spécifié'} : ${question.sentence.replace(/\{.*?\}/g, "_____") || 'Non spécifié'}\n`
+					);
+
+					await new Promise((resolve) => {
+						rl.question(`Votre réponse : `, (userAnswer) => {
+							userAnswers.push({ question, userAnswer });
+
+							// Vérification de la réponse
+							const correctAnswers = Array.isArray(question.correctAnswers)
+								? question.correctAnswers
+								: [question.correctAnswers];
+							const isCorrect = correctAnswers.some(answer => answer.trim().toLowerCase() === userAnswer.trim().toLowerCase());
+
+							if (isCorrect) {
+								logger.info("✅ Correct !");
+							} else {
+								logger.info(`❌ Incorrect. La bonne réponse était : ${correctAnswers.join(", ")}`);
+							}
+							resolve();
+						});
+					});
+				},
+				nombre: async (question, index) => {
+					logger.info(
+						`Question ${index}:\n` +
+						`\tType : ${question.type || 'Non spécifié'}\n` +
+						`\t${question.title || 'Non spécifié'} : ${question.sentence.replace(/\{.*?\}/g, "_____") || 'Non spécifié'}\n`
+					);
+
+					await new Promise((resolve) => {
+						rl.question(`Votre réponse : `, (userAnswer) => {
+							userAnswers.push({ question, userAnswer });
+
+							// Vérification de la réponse
+							const correctAnswers = Array.isArray(question.correctAnswers)
+								? question.correctAnswers
+								: [question.correctAnswers];
+							const isCorrect = correctAnswers.some(answer => answer.trim().toLowerCase() === userAnswer.trim().toLowerCase());
+
+							if (isCorrect) {
+								logger.info("✅ Correct !");
+							} else {
+								logger.info(`❌ Incorrect. La bonne réponse était : ${correctAnswers.join(", ")}`);
+							}
+							resolve();
+						});
+					});
+				},
 			};
 
 			// Boucle principale pour traiter toutes les questions

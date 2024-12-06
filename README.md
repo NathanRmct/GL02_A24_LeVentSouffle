@@ -11,15 +11,25 @@ git clone
 
 Ensuite, il vous faudra installer les dépendances suivantes : 
 ├── @caporal/core@2.0.7
+
 ├── colors@1.4.0
+
 ├── fs@0.0.1-security
+
 ├── jasmine@5.5.0
+
 ├── open@8.4.2
+
 ├── pah@1.0.0
+
 ├── path@0.12.7
+
 ├── prompt-sync@4.2.0
+
 ├── vcards-js@2.10.0
+
 ├── vega-lite@5.21.0
+
 └── vega@5.30.0
 
 Vous pouvez effectuer la commande suivante, pour installer toutes les dépendances de `package.json`
