@@ -140,6 +140,7 @@ cli
 				console.log("Aucune question ajoutée.");
 			}
 
+
 			// Si l'utilisateur a choisie un index qui correspond, on ajoute la question à la liste de questio 
 			else {
 				const selectedQuestion = searchResults[Number(choice) - 1];
@@ -667,6 +668,15 @@ cli
 			};
 
 			// Boucle principale pour traiter toutes les questions
+			if (analyzer.parsedQuestion.length < 15) {
+				logger.warn(`pas suffisament de question`);
+				process.exit(1);
+			}
+			if (analyzer.parsedQuestion.length > 20){
+				logger.warn(`trop de question, il faut en supprimer`);
+				process.exit(1);
+			}
+
 			for (const [index, question] of analyzer.parsedQuestion.entries()) {
 				const handler = questionHandlers[question.type];
 				if (handler) {
