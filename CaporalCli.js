@@ -67,48 +67,39 @@ cli
 			}
 			const data = await fs.promises.readFile(args.file, 'utf8');
 
-			// parser
+			// Instancier le parser et analyser le fichier
 			const analyzer = new GiftParser(options.showTokenize, options.showSymbols);
 			analyzer.parse(data);
 
-			const questionnaire = new Questionnaire(analyzer.parsedQuestion);
-
-			// Vérifie les doublons
-			const originalSize = questionnaire.size();
-			const questionsWithoutDuplicates = questionnaire.doublon();
-			const newSize = questionsWithoutDuplicates.length;
+			// Suppression des doublons
+			const originalSize = analyzer.parsedQuestion.length;
+			analyzer.removeDuplicates(); // Appel de la méthode pour supprimer les doublons
+			const newSize = analyzer.parsedQuestion.length;
 
 			if (originalSize !== newSize) {
-				logger.warn(
-					`Doublons détectés : ${originalSize - newSize} questions supprimées.`
-				);
+				logger.warn(`Doublons détectés : ${originalSize - newSize} questions supprimées.`);
+
+				// Reconstruire le contenu et écraser le fichier
+				const updatedContent = analyzer.rebuildContent();
+				await fs.promises.writeFile(args.file, updatedContent, 'utf8');
+				logger.info(`Fichier mis à jour : ${args.file}`);
 			} else {
 				logger.info('Aucun doublon détecté.');
 			}
 
-			// Vérifie le nombre de questions
-			const numberOfQuestions = analyzer.parsedQuestion.length - 1; // enlever la consigne
-			let qualiteExamen = true;
-
+			// Vérification du nombre de questions
+			const numberOfQuestions = analyzer.parsedQuestion.length;
 			if (numberOfQuestions < 14 || numberOfQuestions > 21) {
-				qualiteExamen = false;
-				if (numberOfQuestions < 14) {
-					logger.warn(`Nombre de questions insuffisant (${numberOfQuestions}), veuillez en rajouter.`);
-				} else {
-					logger.warn(`Nombre de questions trop élevé (${numberOfQuestions}), veuillez en supprimer.`);
-				}
+				logger.warn(`Nombre de questions incorrect (${numberOfQuestions}). Veuillez ajuster.`);
 			} else {
 				logger.info(`Le nombre de questions (${numberOfQuestions}) est dans la plage acceptable.`);
-			}
-			if (qualiteExamen) {
-				logger.info("L'examen respecte les critères de qualité.");
 			}
 		} catch (error) {
 			logger.error('Une erreur est survenue :', error.message);
 		}
 	})
 
-	// Générer au format gift. Il manque la partie où l'on choisit les questions
+// Générer au format gift. Il manque la partie où l'on choisit les questions
 	.command('createGift', 'Génère au format gift un questionnaire à partir de questions provenant d un autre fichier ou d un dossier de questionnnaires gift')
 	.argument('<file>', 'The file or the directory to check with Gift parser')
 	.argument('<name>', 'The name of your future file Gift with questions')

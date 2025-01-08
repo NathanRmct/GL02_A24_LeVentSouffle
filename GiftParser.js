@@ -76,6 +76,25 @@ GiftParser.prototype.next = function (input) {
 	return curS
 }
 
+GiftParser.prototype.removeDuplicates = function () {
+	const seen = new Set();
+	this.parsedQuestion = this.parsedQuestion.filter(question => {
+		const identifier = `${question.title}::${question.sentence}`;
+		if (seen.has(identifier)) {
+			return false; // Duplication détectée
+		}
+		seen.add(identifier);
+		return true;
+	});
+};
+
+GiftParser.prototype.rebuildContent = function () {
+	return this.parsedQuestion.map(question => {
+		return `::${question.title}:: ${question.sentence}`;
+	}).join('\n\n');
+};
+
+
 /* Pas utile (pottentiellement à supprimer)
 // accept : verify if the arg s is part of the language symbols.
 GiftParser.prototype.accept = function(s){
