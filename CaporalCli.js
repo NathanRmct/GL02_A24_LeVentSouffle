@@ -99,18 +99,18 @@ cli
 		}
 	})
 
-// Générer au format gift. Il manque la partie où l'on choisit les questions
 	.command('createGift', 'Génère au format gift un questionnaire à partir de questions provenant d un autre fichier ou d un dossier de questionnnaires gift')
 	.argument('<file>', 'The file or the directory to check with Gift parser')
 	.argument('<name>', 'The name of your future file Gift with questions')
 	.action(async ({ args, options, logger }) => {
+		const colors = require('colors'); // Assurez-vous que cette bibliothèque est installée
 		var selectedQuestions = [];
 
 		while (true) {
-			// Récupère le mot clé utilisé dans la recherche
-			const keyword = prompt("Entrez un mot-clé pour rechercher des questions : ");
+			// Récupère le mot-clé utilisé dans la recherche
+			const keyword = prompt("Entrez un mot-clé pour rechercher des questions : ".cyan);
 			if (!keyword) {
-				console.log("Mot-clé vide. Réessayez.");
+				console.log("Mot-clé vide. Réessayez.".red);
 				continue;
 			}
 
@@ -119,70 +119,70 @@ cli
 
 			// Condition si pas de questions trouvées
 			if (searchResults.length === 0) {
-				console.log(`Aucune question trouvée pour le mot-clé : ${keyword}`);
+				console.log(`Aucune question trouvée pour le mot-clé : ${keyword}`.yellow);
 				continue; // permet de passer à la suite
 			}
 
 			// Affiche les différentes questions trouvées avec un index pour l'utilisateur
-			console.log("\n Questions trouvées : \n");
+			console.log("\nQuestions trouvées :\n".green.bold);
 			searchResults.forEach((question, index) => {
-				logger.info(index + 1);
-				logger.info("%s", JSON.stringify(question, null, 2));
+				console.log(`\n${(index + 1).toString().bold.green})`.bold);
+				console.log(`  Titre : ${question.title.bold}`.bold);
+				console.log(`  Type  : ${question.type.italic.cyan}`);
+				console.log(`  Question : ${question.sentence}`.white);
+				if (question.answers && question.answers.length > 0) {
+					console.log("  Options :".bold);
+					question.answers.forEach((answer, i) => {
+						console.log(`    ${i + 1}. ${answer}`.white);
+					});
+				}
 			});
 
-			// Récupère l'indice choisie par l'utilisateur
-			const choice = prompt(
-				"Entrez le numéro de la question à ajouter (ou appuyez sur Entrée pour annuler) : "
-			);
+			// Récupère l'indice choisi par l'utilisateur
+			const choice = prompt("Entrez le numéro de la question à ajouter (ou appuyez sur Entrée pour annuler) : ".cyan);
 
-			// Si l'utilisateur ne choisie pas le bon index, rien n'est ajoutée
+			// Si l'utilisateur ne choisit pas le bon index, rien n'est ajouté
 			if (!choice || isNaN(choice) || choice < 1 || choice > searchResults.length) {
-				console.log("Aucune question ajoutée.");
-			}
-
-
-			// Si l'utilisateur a choisie un index qui correspond, on ajoute la question à la liste de questio 
-			else {
+				console.log("Aucune question ajoutée.".yellow);
+			} else {
 				const selectedQuestion = searchResults[Number(choice) - 1];
 				selectedQuestions.push(selectedQuestion);
 				logger.info(`Question ajoutée :`);
-				logger.info("%s", JSON.stringify(selectedQuestion, null, 2));
+				console.log(`  Titre : ${selectedQuestion.title.bold}`);
+				console.log(`  Question : ${selectedQuestion.sentence}`);
 			}
 
 			// Demande si l'utilisateur souhaite continuer
-			const continueSearching = prompt(
-				"Voulez-vous continuer à chercher des questions ? (y/n) : "
-			).toLowerCase();
+			const continueSearching = prompt("Voulez-vous continuer à chercher des questions ? (y/n) : ".cyan).toLowerCase();
 
 			if (continueSearching !== "y") {
 				break;
 			}
 		}
 
-
 		if (selectedQuestions.length > 0) {
-			// Transformation de la liste de question en questionnaire
+			// Transformation de la liste de questions en questionnaire
 			var questionnaireSearched = new Questionnaire(selectedQuestions);
-			// transformation de la variable questionnaire en fichier gift (changer la variable questionnaire en le questionnaire adéquat)
+
+			// Transformation des questions en contenu GIFT
 			var giftContent = '';
-			// pour chaque question, on recopie le titre et la variable sentence
 			questionnaireSearched.questions.forEach(q => {
 				giftContent += `::${q.title}:: \n`;
 				giftContent += `${q.sentence} \n`;
-				giftContent += ' \n';
+				giftContent += '\n';
 			});
+
+			// Écriture du fichier GIFT
 			fs.writeFileSync(`${args.name}.gift`, giftContent, "utf8");
-			logger.info(`Fichier GIFT généré : ${args.name}.gift`);
+			logger.info(`Fichier GIFT généré : ${args.name}.gift`.green.bold);
 
 			// Ouverture du fichier .gift créé
 			open(`./${args.name}.gift`);
+		} else {
+			logger.info("Aucune question choisie, pas de fichier créé.".yellow);
 		}
-		else {
-			logger.info("Aucune questions choisies, pas de fichier créé");
-		}
-
-
 	})
+
 
 	// createVcard : création du fichier vcard pour l'enseignant
 	// bibliothèques utilisées :
@@ -677,8 +677,11 @@ cli
 				process.exit(1);
 			}
 
+
+
 			for (const [index, question] of analyzer.parsedQuestion.entries()) {
 				const handler = questionHandlers[question.type];
+				console.log(`Question ${index + 1} :`);
 				if (handler) {
 					await handler(question, index);
 				} else {

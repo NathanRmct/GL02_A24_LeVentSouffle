@@ -496,4 +496,6 @@ GiftParser.prototype.extractCorrectAnswers = function (sentence, question) {
 	return correctAnswers;
 };
 
+
+
 module.exports = GiftParser;
