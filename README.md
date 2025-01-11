@@ -83,5 +83,5 @@ npm install
     ```
     Exemple d'utilisation
     ```bash
-    node CaporalCli examChat TEST.gift
+
     ````
