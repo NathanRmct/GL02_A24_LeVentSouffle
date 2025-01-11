@@ -203,19 +203,36 @@ cli
 		if (vCard.firstName.replaceAll(" ", "") === "") {
 			throw new Error("L'entrée prénom ne peut pas être vide.\n La vCard n'a pas pu être créée.");
 		}
+		if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(vCard.firstName)) {
+			throw new Error("Erreur : Le prénom doit contenir uniquement des lettres.");
+		}
+
 		vCard.lastName = prompt('Entrez votre nom : ');
 		if (vCard.lastName.replaceAll(" ", "") === "") {
 			throw new Error("L'entrée nom ne peut pas être vide.\n La vCard n'a pas pu être créée.");
+		}
+		if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(vCard.lastName)) {
+			throw new Error("Erreur : Le nom doit contenir uniquement des lettres.");
 		}
 		vCard.email = prompt('Entrez votre email : ');
 		if (vCard.email.replaceAll(" ", "") === "") {
 			throw new Error("L'entrée email ne peut pas être vide.\n La vCard n'a pas pu être créée.");
 		}
+		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vCard.email)) {
+			throw new Error("Erreur : L'adresse e-mail est invalide.");
+		}
+
 		vCard.workPhone = prompt('Entrez votre numéro de téléphone : ');
+		if (!/^\+?[0-9\s\-]{1,10}$/.test(vCard.workPhone)) {
+			throw new Error("Erreur : Le numéro de téléphone est invalide. Il doit contenir au maximum 10 caractères");
+		}
 		vCard.organization = prompt('Entrez le nom de votre organisation : ');
 		console.log('Adresse :');
 		vCard.homeAddress.street = prompt('Entrez votre numéro et votre rue : ');
 		vCard.homeAddress.postalCode = prompt('Entrez votre code postal : ');
+		if (!/^\d{4,10}$/.test(vCard.homeAddress.postalCode)) {
+			throw new Error("Erreur : Le code postal doit contenir uniquement des chiffres (4 à 10 caractères).");
+		}
 		vCard.homeAddress.city = prompt('Entrez votre ville : ');
 		vCard.homeAddress.countryRegion = prompt('Entrez votre Pays : ');
 
