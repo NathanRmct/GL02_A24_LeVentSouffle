@@ -233,8 +233,15 @@ cli
 		if (!/^\d{4,10}$/.test(vCard.homeAddress.postalCode)) {
 			throw new Error("Erreur : Le code postal doit contenir uniquement des chiffres (4 à 10 caractères).");
 		}
+
 		vCard.homeAddress.city = prompt('Entrez votre ville : ');
+		if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(vCard.homeAddress.city)) {
+			throw new Error("Erreur : La ville doit contenir uniquement des lettres.");
+		}
 		vCard.homeAddress.countryRegion = prompt('Entrez votre Pays : ');
+		if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(vCard.homeAddress.countryRegion)) {
+			throw new Error("Erreur : Le pays doit contenir uniquement des lettres.");
+		}
 
 		// spécification de la version vCard (version 4.0 conseillée par le cahier des charges)
 		vCard.version = '4.0';
