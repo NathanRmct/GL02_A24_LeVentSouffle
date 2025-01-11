@@ -684,18 +684,24 @@ cli
 				},
 			};
 
-			// Boucle principale pour traiter toutes les questions
+			// verifie si l'examen est valide avant de lancer la simulation
+			// si l'examen n'a pas assez de questions
 			if (analyzer.parsedQuestion.length < 15) {
 				logger.warn(`pas suffisament de question`);
 				process.exit(1);
 			}
-			if (analyzer.parsedQuestion.length > 20){
+			// si l'examen a trop de questions
+			if (analyzer.parsedQuestion.length > 20) {
 				logger.warn(`trop de question, il faut en supprimer`);
-				process.exit(1);
+				process.exit(2);
+			}
+			// si l'examen a des doublons de questions
+			if (new Set(analyzer.parsedQuestion).size !== analyzer.parsedQuestion.length) {
+				logger.warn(`L'examen contient des questions en double.`);
+				process.exit(3);
 			}
 
-
-
+			// Boucle principale pour traiter toutes les questions
 			for (const [index, question] of analyzer.parsedQuestion.entries()) {
 				const handler = questionHandlers[question.type];
 				console.log(`Question ${index + 1} :`);
